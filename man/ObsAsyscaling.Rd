@@ -46,6 +46,7 @@ a data frame including the following information/statistics:
 \code{ObsAsyscaling} computes observed and asymptotic diversity of order q between 0 and 2 (in increments of 0.2) for diversity; these values with different order q can be used to depict a q-profile in the \code{ggObsAsyscaling} function.\cr\cr
 }
 \examples{
+\donttest{
 # Compute the observed and asymptotic taxonomic diversity for abundance data
 # with order q between 0 and 2 (in increments of 0.2 by default)
 data(Brazil_rainforest_abun_data)
@@ -60,6 +61,7 @@ data(Fish_incidence_data)
 output_ObsAsy_TD_inci <- ObsAsyscaling(Fish_incidence_data, rho = 0.3, 
                                        datatype = "incidence_raw")
 output_ObsAsy_TD_inci
+}
 
 
 }

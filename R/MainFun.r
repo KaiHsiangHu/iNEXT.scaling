@@ -44,7 +44,7 @@ DataInfoscaling <- function(data, rho, datatype = "abundance", nT = NULL){
   out <- TDinfo(data, rho, datatype)
   
   return(out)
-}
+  }
 
 
 #' @useDynLib iNEXT.scaling, .registration = TRUE
@@ -142,46 +142,38 @@ iNEXTscaling <- function(data, rho, q = c(0, 1, 2), datatype = "abundance", size
   nboot = check.nboot(nboot)
   size = check.size(data, rho, datatype, size, endpoint, knots)
   
-  Fun <- function(x, rho, q, size, assem_name){
+  Fun <- function(x, rho, q, size, assem_name) {
     
-    if(datatype == "abundance"){
-      
-      out <- iNEXT.Ind(Spec=x, rho, q=q, m=size, knots=knots, nboot=nboot, conf=conf)
-    }
+    if (datatype == "abundance") out <- iNEXT.Ind(Spec = x, rho, q = q, m = size, knots = knots, nboot = nboot, conf = conf)
     
-    if(datatype == "incidence_raw"){
-      
-      if(sum(x)==0) stop("Zero incidence frequencies in one or more sample sites")
-      
-      out <- iNEXT.Sam(Spec=x, rho, q=q, t=size, knots=knots, nboot=nboot, conf=conf)
-    }
+    if (datatype == "incidence_raw") out <- iNEXT.Sam(Spec = x, rho, q = q, t = size, knots = knots, nboot = nboot, conf = conf)
     
     out <- lapply(out, function(out_) cbind(Assemblage = assem_name, out_))
     
     out
   }
   
-  z <- qnorm(1-(1-conf)/2)
+  z <- qnorm(1 - (1 - conf) / 2)
   
-  if(is.null(names(data))){
-    names(data) <- sapply(1:length(data), function(i) paste0('assemblage',i))
-  }
-  out <- lapply(1:length(data), function(i) {
-    tmp <- Fun(data[[i]], rho[i], q, size[[i]], names(data)[i])
-    tmp
-  })
   
-  out <- list(size_based = do.call(rbind, lapply(out, function(out_){out_[[1]]})),
-              coverage_based = do.call(rbind, lapply(out, function(out_){out_[[2]]})))
+  out <- lapply(1:length(data), function(i) Fun(data[[i]], rho[i], q, size[[i]], names(data)[i]))
+  
+  out <- list(size_based = do.call(rbind, lapply(out, function(out_) out_[[1]])),
+              coverage_based = do.call(rbind, lapply(out, function(out_) out_[[2]])))
   
   index <- rbind(asyTD(data, rho, datatype, c(0, 1, 2), nboot, conf),
                  obsTD(data, rho, datatype, c(0, 1, 2), nboot, conf))
+  
   index = index[order(index$Assemblage),]
-  LCL <- index$qTD.LCL[index$Method=='Asymptotic']
-  UCL <- index$qTD.UCL[index$Method=='Asymptotic']
-  index <- dcast(index,formula = Assemblage+Order.q~Method,value.var = 'qTD')
-  index <- cbind(index,se = (UCL - index$Asymptotic)/z,LCL,UCL)
+  
+  LCL <- index$qTD.LCL[index$Method == 'Asymptotic']
+  UCL <- index$qTD.UCL[index$Method == 'Asymptotic']
+  
+  index <- dcast(index, formula = Assemblage + Order.q ~ Method, value.var = 'qTD')
+  index <- cbind(index, se = (UCL - index$Asymptotic) / z, LCL, UCL)
+  
   index$Order.q <- c('Species richness','Shannon diversity','Simpson diversity')
+  
   index[,3:4] = index[,4:3]
   colnames(index) <- c("Assemblage", "qTD", "TD_obs", "TD_asy", "s.e.", "qTD.LCL", "qTD.UCL")
   
@@ -191,10 +183,11 @@ iNEXTscaling <- function(data, rho, q = c(0, 1, 2), datatype = "abundance", size
   
   info <- DataInfoscaling(data.original, rho, datatype.original, nT)
   
-  out <- list("TDInfo"=info, "TDiNextEst"=out, "TDAsyEst"=index)
+  out <- list("TDInfo" = info, "TDiNextEst" = out, "TDAsyEst" = index)
   
   
   if (datatype != 'abundance'){
+    
     out[[2]]$size_based <- rename(out[[2]]$size_based, c("mT" = "nT"))
     out[[2]]$coverage_based <- rename(out[[2]]$coverage_based, c("mT" = "nT"))
   }
@@ -202,7 +195,7 @@ iNEXTscaling <- function(data, rho, q = c(0, 1, 2), datatype = "abundance", size
   class(out) <- c("iNEXTscaling")
   
   return(out)
-}
+  }
 
 
 #' ggplot2 extension for an iNEXTscaling object
@@ -251,14 +244,14 @@ ggiNEXTscaling = function(output, type = 1:3, facet.var = "Assemblage", color.va
   plottable$coverage_based = rename(plottable$coverage_based, c('qD' = 'qTD', 'qD.LCL' = 'qTD.LCL', 'qD.UCL' = 'qTD.UCL'))
   
   SPLIT <- c("None", "Order.q", "Assemblage", "Both")
-  if(is.na(pmatch(facet.var, SPLIT)) | pmatch(facet.var, SPLIT) == -1)
-    stop("invalid facet variable")
-  if(is.na(pmatch(color.var, SPLIT)) | pmatch(color.var, SPLIT) == -1)
-    stop("invalid color variable")
+  
+  if (is.na(pmatch(facet.var, SPLIT)) | pmatch(facet.var, SPLIT) == -1) stop("invalid facet variable")
+  
+  if (is.na(pmatch(color.var, SPLIT)) | pmatch(color.var, SPLIT) == -1) stop("invalid color variable")
   
   TYPE <-  c(1, 2, 3)
-  if(sum(!(type %in% TYPE)) >= 1)
-    stop("invalid plot type")
+  if (sum(!(type %in% TYPE)) >= 1) stop("invalid plot type")
+  
   type <- pmatch(type, 1:3)
   facet.var <- match.arg(facet.var, SPLIT)
   color.var <- match.arg(color.var, SPLIT)
@@ -269,8 +262,8 @@ ggiNEXTscaling = function(output, type = 1:3, facet.var = "Assemblage", color.va
   if ('m' %in% colnames(plottable$size_based) & 'm' %in% colnames(plottable$coverage_based)) datatype = 'abundance'
   if ('mT' %in% colnames(plottable$size_based) & 'mT' %in% colnames(plottable$coverage_based)) datatype = 'incidence'
   
-  
   out = lapply(type, function(i) type_plot(x_list = plottable, i, class, datatype, facet.var, color.var))
+  
   if (length(type) == 1) out = out[[1]]
   
   return(out)
@@ -341,38 +334,54 @@ type_plot = function(x_list, type, class, datatype, facet.var, color.var) {
   if (color.var == "None") {
     
     if (levels(factor(output$Order.q)) > 1 & length(unique(output$Assemblage)) > 1) {
+      
       warning ("invalid color.var setting, the iNEXTscaling object consists multiple assemblages and orders, change setting as Both")
+      
       color.var <- "Both"
       output$col <- output$shape <- paste(output$Assemblage, output$Order.q, sep="-")
       
     } else if (length(unique(output$Assemblage)) > 1) {
+      
       warning ("invalid color.var setting, the iNEXTscaling object consists multiple assemblages, change setting as Assemblage")
+      
       color.var <- "Assemblage"
       output$col <- output$shape <- output$Assemblage
-    } else if (levels(factor(output$Order.q)) > 1){
+      
+    } else if (levels(factor(output$Order.q)) > 1) {
+      
       warning ("invalid color.var setting, the iNEXTscaling object consists multiple orders, change setting as Order.q")
+      
       color.var <- "Order.q"
       output$col <- output$shape <- factor(output$Order.q)
+      
     } else {
+      
       output$col <- output$shape <- rep(1, nrow(output))
     }
   } else if (color.var == "Order.q") {    
     
     output$col <- output$shape <- factor(output$Order.q)
+    
   } else if (color.var == "Assemblage") {
     
     if (length(unique(output$Assemblage)) == 1) {
+      
       warning ("invalid color.var setting, the iNEXTscaling object do not consist multiple assemblages, change setting as Order.q")
+      
       output$col <- output$shape <- factor(output$Order.q)
     }
+    
     output$col <- output$shape <- output$Assemblage
     
   } else if (color.var == "Both") {
     
     if (length(unique(output$Assemblage)) == 1) {
+      
       warning ("invalid color.var setting, the iNEXTscaling object do not consist multiple assemblages, change setting as Order.q")
+      
       output$col <- output$shape <- factor(output$Order.q)
     }
+    
     output$col <- output$shape <- paste(output$Assemblage, output$Order.q, sep="-")
   }
   
@@ -389,7 +398,7 @@ type_plot = function(x_list, type, class, datatype, facet.var, color.var) {
   if (length(unique(output$Assemblage)) <= 8){
     cbPalette <- rev(c("#999999", "#E69F00", "#56B4E9", "#009E73", 
                        "#330066", "#CC79A7", "#0072B2", "#D55E00"))
-  }else{
+  } else {
     
     cbPalette <- rev(c("#999999", "#E69F00", "#56B4E9", "#009E73", 
                        "#330066", "#CC79A7", "#0072B2", "#D55E00"))
@@ -397,8 +406,8 @@ type_plot = function(x_list, type, class, datatype, facet.var, color.var) {
   }
   
   g <- ggplot(output, aes_string(x = "x", y = "y", colour = "col")) + 
-    geom_line(aes_string(linetype = "lty"), lwd=1.5) +
-    geom_point(aes_string(shape = "shape"), size=5, data = data.sub) +
+    geom_line(aes_string(linetype = "lty"), lwd = 1.5) +
+    geom_point(aes_string(shape = "shape"), size = 5, data = data.sub) +
     geom_ribbon(aes_string(ymin = "y.lwr", ymax = "y.upr", fill = "factor(col)", colour = "NULL"), alpha = 0.2) +
     scale_fill_manual(values = cbPalette) +
     scale_colour_manual(values = cbPalette) +
@@ -422,48 +431,62 @@ type_plot = function(x_list, type, class, datatype, facet.var, color.var) {
   
   if (facet.var == "Order.q") {
     
-    if(length(levels(factor(output$Order.q))) == 1 & type != 2){
+    if (length(levels(factor(output$Order.q))) == 1 & type != 2) {
+      
       warning("invalid facet.var setting, the iNEXTscaling object do not consist multiple orders.")      
+      
     } else {
+      
       odr_grp <- labeller(Order.q = c(`0` = "q = 0", `1` = "q = 1",`2` = "q = 2")) 
       
       g <- g + facet_wrap( ~ Order.q, nrow = 1, labeller = odr_grp)
       
       if (color.var == "Both") {
+        
         g <- g + guides(colour = guide_legend(title = "Guides", ncol = length(levels(factor(output$Order.q))), byrow = TRUE),
                         fill = guide_legend(title = "Guides"))
       }
-      if(type == 2){
+      
+      if (type == 2) {
+        
         g <- g + theme(strip.background = element_blank(), strip.text.x = element_blank())
         
       }
     }
   }
   
-  if(facet.var == "Assemblage"){
+  if (facet.var == "Assemblage") {
     
-    if(length(unique(output$Assemblage)) == 1) {
+    if (length(unique(output$Assemblage)) == 1) {
+      
       warning("invalid facet.var setting, the iNEXTscaling object do not consist multiple assemblages")
-    }else{
+      
+    } else {
+      
       g <- g + facet_wrap(. ~ Assemblage, nrow = 1)
       
-      if(color.var == "Both"){
+      if (color.var == "Both") {
+        
         g <- g + guides(colour = guide_legend(title = "Guides", nrow = length(levels(factor(output$Order.q)))),
                         fill = guide_legend(title = "Guides"))
       }
     }
   }
   
-  if(facet.var == "Both"){
+  if (facet.var == "Both") {
     
-    if(length(levels(factor(output$Order.q))) == 1 | length(unique(output$Assemblage)) == 1){
+    if (length(levels(factor(output$Order.q))) == 1 | length(unique(output$Assemblage)) == 1) {
+      
       warning("invalid facet.var setting, the iNEXTscaling object do not consist multiple assemblages or orders.")
-    }else{
+      
+    } else {
+      
       odr_grp <- labeller(Order.q = c(`0` = "q = 0", `1` = "q = 1",`2` = "q = 2")) 
       
       g <- g + facet_wrap(Assemblage ~ Order.q, labeller = odr_grp)
       
-      if(color.var == "both"){
+      if (color.var == "both") {
+        
         g <- g +  guides(colour = guide_legend(title = "Guides", nrow = length(levels(factor(output$Assemblage))), byrow = TRUE),
                          fill = guide_legend(title = "Guides"))
       }
@@ -555,6 +578,7 @@ estimatescaling <- function(data, rho, q = c(0,1,2), datatype = "abundance", bas
     
     out <- invChat(data, rho, q, datatype, C = level, nboot, conf = conf)
   }
+  
   out$qTD.LCL[out$qTD.LCL<0] <- 0
   
   if (datatype == "incidence_raw") out <- rename(out, c("mT" = "nT"))
@@ -587,6 +611,7 @@ estimatescaling <- function(data, rho, q = c(0,1,2), datatype = "abundance", bas
 #' 
 #' 
 #' @examples
+#' \donttest{
 #' # Compute the observed and asymptotic taxonomic diversity for abundance data
 #' # with order q between 0 and 2 (in increments of 0.2 by default)
 #' data(Brazil_rainforest_abun_data)
@@ -601,6 +626,7 @@ estimatescaling <- function(data, rho, q = c(0,1,2), datatype = "abundance", bas
 #' output_ObsAsy_TD_inci <- ObsAsyscaling(Fish_incidence_data, rho = 0.3, 
 #'                                        datatype = "incidence_raw")
 #' output_ObsAsy_TD_inci
+#' }
 #' 
 #' 
 #' @export
@@ -640,6 +666,7 @@ ObsAsyscaling <- function(data, rho, q = seq(0, 2, 0.2), datatype = "abundance",
 #' @return a q-profile based on the observed diversity and the asymptotic diversity estimate.\cr\cr
 #' 
 #' @examples
+#' \donttest{
 #' # Plot q-profile of taxonomic diversity for abundance data
 #' # with order q between 0 and 2 (in increments of 0.2 by default).
 #' data(Brazil_rainforest_abun_data)
@@ -654,6 +681,7 @@ ObsAsyscaling <- function(data, rho, q = seq(0, 2, 0.2), datatype = "abundance",
 #' output_ObsAsy_TD_inci <- ObsAsyscaling(Fish_incidence_data, rho = 0.3, 
 #'                                        datatype = "incidence_raw")
 #' ggObsAsyscaling(output_ObsAsy_TD_inci)
+#' }
 #' 
 #' 
 #' @export
@@ -665,11 +693,15 @@ ggObsAsyscaling <- function(output){
   out = ggplot(output, aes(x = Order.q, y = qTD, colour = Assemblage, fill = Assemblage))
   
   if (length(unique(output$Method)) == 1) {
+    
     out = out + geom_line(size = 1.5) + geom_ribbon(aes(ymin = qTD.LCL, ymax = qTD.UCL, fill = Assemblage), linetype = 0, alpha = 0.2)
     
     if (unique(output$Method == 'Asymptotic')) out = out + labs(x = 'Order q', y = 'Asymptotic taxonomic diversity')
+    
     if (unique(output$Method == 'Observed')) out = out + labs(x = 'Order q', y = 'Observed taxonomic diversity')
+    
   } else {
+    
     out = out + geom_line(aes(lty = Method), size = 1.5) + 
       geom_ribbon(data = output %>% filter(Method=="Asymptotic"), aes(ymin = qTD.LCL, ymax = qTD.UCL), linetype = 0, alpha = 0.2)
     
@@ -705,15 +737,17 @@ ggObsAsyscaling <- function(output){
 
 
 ggplotColors <- function(g){
-  d <- 360/g # Calculate the distance between colors in HCL color space
-  h <- cumsum(c(15, rep(d,g - 1))) # Create cumulative sums to define hue values
+  
+  d <- 360 / g # Calculate the distance between colors in HCL color space
+  
+  h <- cumsum(c(15, rep(d, g - 1))) # Create cumulative sums to define hue values
+  
   hcl(h = h, c = 100, l = 65) # Convert HCL values to hexadecimal color codes
-}
+  }
 
 
 ## ========== no visible global function definition for R CMD check ========== ##
-utils::globalVariables(c("qTD", "Assemblage", "qTD.LCL", "qTD.UCL",
-                         "Method", "Order.q"))
+utils::globalVariables(c("qTD", "Assemblage", "qTD.LCL", "qTD.UCL", "Method", "Order.q"))
 
 
 

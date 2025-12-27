@@ -17,6 +17,7 @@ a q-profile based on the observed diversity and the asymptotic diversity estimat
 In the plot of profiles, only confidence intervals of the asymptotic diversity will be shown when both the observed and asymptotic diversity estimates are computed.
 }
 \examples{
+\donttest{
 # Plot q-profile of taxonomic diversity for abundance data
 # with order q between 0 and 2 (in increments of 0.2 by default).
 data(Brazil_rainforest_abun_data)
@@ -31,6 +32,7 @@ data(Fish_incidence_data)
 output_ObsAsy_TD_inci <- ObsAsyscaling(Fish_incidence_data, rho = 0.3, 
                                        datatype = "incidence_raw")
 ggObsAsyscaling(output_ObsAsy_TD_inci)
+}
 
 
 }

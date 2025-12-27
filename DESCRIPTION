@@ -1,6 +1,6 @@
 Package: iNEXT.scaling
 Type: Package
-Title: Interpolation and Extrapolation for scaling of Biodiversity
+Title: Interpolation and Extrapolation for upscaling biodiversity
 Version: 1.0.0
 Author: Kai-Hsiang Hu [aut, cre], Anne Chao [ctb]
 Maintainer: KaiHsiang Hu <river19951224@gmail.com>
@@ -14,8 +14,8 @@ Authors@R:
            role = "ctb",
            email = "chao@stat.nthu.edu.tw"))
 Description: Biodiversity is a multifaceted concept covering different levels of organization from
-            genes to ecosystems. 'iNEXT.scaling' extends 'iNEXT' to estimate taxonomic diversity (TD)
-            under sampling without replacement scheme. This package provides functions to compute standardized 
+            genes to ecosystems. 'iNEXT.scaling' extends 'iNEXT' to estimate Hill numbers (also called taxonomic diversity)
+            under sampling without replacement model. This package provides functions to compute standardized 
             taxonomic diversity estimates with a common sample size or sample coverage. 
             The package features size- and coverage-based rarefaction and extrapolation 
             sampling curves to facilitate rigorous comparison across individual assemblages. 
