@@ -1,0 +1,41 @@
+Package: iNEXT.scaling
+Type: Package
+Title: Interpolation and Extrapolation for scaling of Biodiversity
+Version: 1.0.0
+Author: Kai-Hsiang Hu [aut, cre], Anne Chao [ctb]
+Maintainer: KaiHsiang Hu <river19951224@gmail.com>
+Authors@R: 
+  c(person("Kai-Hsiang", 
+           "Hu", 
+           role = c("aut","cre"),
+           email = "river19951224@gmail.com"),
+    person("Anne", 
+           "Chao", 
+           role = "ctb",
+           email = "chao@stat.nthu.edu.tw"))
+Description: Biodiversity is a multifaceted concept covering different levels of organization from
+            genes to ecosystems. 'iNEXT.scaling' extends 'iNEXT' to estimate taxonomic diversity (TD)
+            under sampling without replacement scheme. This package provides functions to compute standardized 
+            taxonomic diversity estimates with a common sample size or sample coverage. 
+            The package features size- and coverage-based rarefaction and extrapolation 
+            sampling curves to facilitate rigorous comparison across individual assemblages. 
+            Asymptotic diversity estimates are also provided.
+License: GPL (>= 3)
+Depends: R (>= 4.0)
+Imports:
+    stats,
+    tibble,
+    ggplot2,
+    reshape2,
+    dplyr,
+    Rcpp
+Suggests: testthat,
+    knitr,
+    rmarkdown,
+    gridExtra
+BugReports: https://github.com/KaiHsiangHu/iNEXT.scaling/issues
+LazyLoad: yes
+RoxygenNote: 7.3.2
+VignetteBuilder: knitr
+ByteCompile: true
+LinkingTo: Rcpp
