@@ -7,7 +7,7 @@ Interpolation and Extrapolation for upscaling biodiversity
 }
 \description{
 \code{iNEXT.scaling} (iNterpolation and EXTrapolation for upscaling biodiversity) is a sequel to \code{iNEXT} (Hsieh et al., 2016) and \code{iNEXT.3D} (Chao et al., 2021).
-\code{iNEXT.scaling} estimates Hill numbers (also called taxonomic diversity) under the sampling without replacement model. An online version "iNEXT.scaling Online"
+\code{iNEXT.scaling} estimates the Hill numbers (also called taxonomic diversity) under the sampling without replacement model. An online version "iNEXT.scaling Online"
 (https://kaihsiang-hu.shinyapps.io/iNEXT_scaling/) is also available for users without an R background.
 
 \code{iNEXT.scaling} features two statistical analyses (non-asymptotic and asymptotic):
