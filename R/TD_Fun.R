@@ -493,7 +493,7 @@ iNEXT.Sam <- function(Spec, rho, t=NULL, q=0, knots=40, nboot=200, conf=0.95){
     
     Abun.Mat <- EstiBootComm.Sam(Spec, rho, nboot)
     
-    tmp <- which(colSums(Abun.Mat) == nT)
+    tmp <- which(colSums(Abun.Mat[-1,]) == nT)
     
     if (length(tmp) > 0) Abun.Mat <- Abun.Mat[, -tmp]
     
@@ -599,7 +599,7 @@ invChat <- function(x, rho, q, datatype = "abundance", C = NULL,nboot = 0, conf 
         
         Abun.Mat <- EstiBootComm.Sam(x[[i]], rho[i], nboot)
         
-        tmp <- which(colSums(Abun.Mat) == ncol(x[[i]]))
+        tmp <- which(colSums(Abun.Mat[-1,]) == ncol(x[[i]]))
         
         if(length(tmp) > 0) Abun.Mat <- Abun.Mat[,-tmp]
         
@@ -793,7 +793,7 @@ invSize <- function(x, rho, q, datatype="abundance", size=NULL, nboot=0, conf=NU
         
         Abun.Mat <- EstiBootComm.Sam(x[[i]], rho[i], nboot)
         
-        tmp <- which(colSums(Abun.Mat) == ncol(x[[i]]))
+        tmp <- which(colSums(Abun.Mat[-1,]) == ncol(x[[i]]))
         
         if (length(tmp) > 0) Abun.Mat <- Abun.Mat[, -tmp]
         
@@ -1162,7 +1162,7 @@ asyTD = function(data, rho, datatype, q, nboot, conf) {
         
         Abun.Mat <- EstiBootComm.Sam(data[[i]], rho[i], nboot)
         
-        tmp <- which(colSums(Abun.Mat) == ncol(data[[i]]))
+        tmp <- which(colSums(Abun.Mat[-1,]) == ncol(data[[i]]))
         
         if (length(tmp) > 0) Abun.Mat <- Abun.Mat[, -tmp]
         
@@ -1248,7 +1248,7 @@ obsTD = function(data, rho, datatype, q, nboot, conf) {
         
         Abun.Mat <- EstiBootComm.Sam(data[[i]], rho[i], nboot)
         
-        tmp <- which(colSums(Abun.Mat) == ncol(data[[i]]))
+        tmp <- which(colSums(Abun.Mat[-1,]) == ncol(data[[i]]))
         
         if (length(tmp) > 0) Abun.Mat <- Abun.Mat[, -tmp]
         
