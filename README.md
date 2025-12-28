@@ -328,10 +328,10 @@ data
     <code>endpoint</code>; each knot represents a particular sample size
     for which diversity estimate will be calculated. If the
     <code>endpoint</code> is smaller than the reference sample size,
-    then <code>iNEXT3D()</code> computes only the rarefaction estimates
-    for approximately K evenly spaced <code>knots</code>. If the
-    <code>endpoint</code> is larger than the reference sample size, then
-    <code>iNEXT3D()</code> computes rarefaction estimates for
+    then <code>iNEXTscaling()</code> computes only the rarefaction
+    estimates for approximately K evenly spaced <code>knots</code>. If
+    the <code>endpoint</code> is larger than the reference sample size,
+    then <code>iNEXTscaling()</code> computes rarefaction estimates for
     approximately K/2 evenly spaced <code>knots</code> between sample
     size 1 and the reference sample size, and computes extrapolation
     estimates for approximately K/2 evenly spaced <code>knots</code>
