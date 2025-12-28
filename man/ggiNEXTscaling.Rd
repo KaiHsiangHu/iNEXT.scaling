@@ -37,12 +37,11 @@ a \code{ggplot2} object for sample-size-based rarefaction/extrapolation curve (\
 }
 \examples{
 \donttest{
-# Plot three types of curves of taxonomic diversity with facet.var = "Assemblage"
-# for abundance data with order q = 0, 1, 2
+# Plot three types of curves of taxonomic diversity for abundance data with order q = 0, 1, 2
 data(Brazil_rainforest_abun_data)
 output_TD_abun <- iNEXTscaling(Brazil_rainforest_abun_data, rho = 0.3, 
                                q = c(0, 1, 2), datatype = "abundance")
-ggiNEXTscaling(output_TD_abun, facet.var = "Assemblage")
+ggiNEXTscaling(output_TD_abun)
 
 
 # Plot three types of curves of taxonomic diversity for incidence data with order q = 0, 1, 2

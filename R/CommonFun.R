@@ -182,11 +182,34 @@ check.datatype <- function(data, datatype, nT = nT, empirical = FALSE) {
   
   if (datatype == "incidence_raw") {
     
-    if (inherits(data, c("data.frame", "matrix"))) data = list('Assemblage_1' = as.matrix(data))
+    if (inherits(data, c("data.frame", "matrix")) & is.null(nT)) data = list('Assemblage_1' = as.matrix(data))
+    
+    if (inherits(data, c("data.frame", "matrix")) & !is.null(nT)) {
+      
+      if (ncol(data) != sum(nT)) stop("Number of columns does not euqal to the sum of nT (number of sampling units for each assemblage).", call. = FALSE)
+      
+      datalist = list()
+      
+      ntmp <- 0
+      
+      for (i in 1:length(nT)) {
+        
+        datalist[[i]] <- data[, (ntmp + 1):(ntmp + nT[i])]
+        
+        ntmp <- ntmp + nT[i]
+      }
+      
+      names(datalist) = names(nT)
+      
+      data = datalist
+      
+      if (is.null(names(data))) names(data) = paste0("Assemblage_", 1:length(data))
+    }
     
     if (inherits(data, c("numeric", "integer", "double"))) data = list('Assemblage_1' = as.matrix(data))
     
     if (inherits(data, "list")) {
+      
       data = lapply(data, function(i) as.matrix(i))
       
       if ( sum(sapply(data, function(y) sum(rowSums(y) > 0)) < 5) > 0 & !empirical) stop("To ensure reliable results, iNEXT.scaling requires sufficient data; the number of observed species should be at least five. 
@@ -195,8 +218,6 @@ check.datatype <- function(data, datatype, nT = nT, empirical = FALSE) {
       if ( sum(sapply(data, sum) == 0) > 0 & !empirical) stop("Data values are all zero in some assemblages. Please remove these assemblages.", call. = FALSE)
       
     }
-    
-    if (sum(sapply(data, ncol) != nT) > 0 & !is.null(nT)) stop("Number of columns does not euqal to the sum of nT (number of sampling units for each assemblage).", call. = FALSE)
     
     if (sum(sapply(data, function(x) sum(x > 1))) != 0) stop("The data for datatype = 'incidence_raw' can only contain values zero (undetected) or one (detected). Please transform values to zero or one.", call. = FALSE)
     

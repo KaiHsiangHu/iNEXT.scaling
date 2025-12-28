@@ -408,7 +408,7 @@ TD.m.est_inc <- function(x, rho, t_, q){
 }
 
 
-iNEXT.Ind <- function(Spec, rho, q=0, m=NULL, knots=40, nboot=200, conf=0.95){
+iNEXT.Ind <- function(Spec, rho, q = 0, m = NULL, knots = 40, nboot = 200, conf = 0.95){
   qtile <- qnorm(1 - (1 - conf)/2)
   n <- sum(Spec)
   
@@ -474,7 +474,7 @@ iNEXT.Ind <- function(Spec, rho, q=0, m=NULL, knots=40, nboot=200, conf=0.95){
   }
 
 
-iNEXT.Sam <- function(Spec, rho, t=NULL, q=0, knots=40, nboot=200, conf=0.95){
+iNEXT.Sam <- function(Spec, rho, t = NULL, q = 0, knots = 40, nboot = 200, conf = 0.95){
   qtile <- qnorm(1 - (1 - conf) / 2)
   
   nT <- ncol(Spec)
@@ -749,7 +749,7 @@ invChat.Sam <- function (x, rho, q, C) {
 }
 
 
-invSize <- function(x, rho, q, datatype="abundance", size=NULL, nboot=0, conf=NULL){
+invSize <- function(x, rho, q, datatype = "abundance", size = NULL, nboot = 0, conf = NULL){
   
   qtile <- qnorm(1 - (1 - conf) / 2)
   
@@ -826,12 +826,12 @@ invSize <- function(x, rho, q, datatype="abundance", size=NULL, nboot=0, conf=NU
 
 invSize.Ind <- function(x, rho, q, size){
   
-  n <- sum(x)
+  nt <- sum(x)
   out <- TD.m.est(x, rho, m = size, q = q)
   
   SC <- Coverage(x, rho, 'abundance', size)
   
-  method <- ifelse(size > n, 'Extrapolation', ifelse(size < n, 'Rarefaction', 'Observed'))
+  method <- ifelse(size > nt, 'Extrapolation', ifelse(size < nt, 'Rarefaction', 'Observed'))
   method <- rep(method, length(q))
   
   m <- rep(size, length(q))
@@ -848,7 +848,7 @@ invSize.Ind <- function(x, rho, q, size){
 
 invSize.Sam <- function(x, rho, q, size){
   
-  n <- ncol(x)
+  n <- x[1]
   out <- TD.m.est_inc(x, rho, t_ = size, q)
   
   SC <- Coverage(x, rho,"incidence_freq", size)

@@ -31,18 +31,18 @@ iNEXTscaling(
 If \code{NULL}, then diversity estimates will be computed for those sample sizes determined by the specified/default \code{endpoint} and \code{knots}.}
 
 \item{endpoint}{an integer specifying the sample size that is the \code{endpoint} for rarefaction/extrapolation. 
-If \code{NULL}, then \code{endpoint} \code{=} double reference sample size.}
+If \code{NULL}, then \code{endpoint} \code{=} the maximum sample sizes, which is set to double the reference sample size when rho is less than 0.2; triple the reference sample size when rho is between 0.2 and 0.4; and the total number of individuals when rho exceeds 0.4.}
 
 \item{knots}{an integer specifying the number of equally-spaced \code{knots} (say K, default is 40) between size 1 and the \code{endpoint};
-each knot represents a particular sample size for which diversity estimate will be calculated.  
-If the \code{endpoint} is smaller than the reference sample size, then \code{iNEXTscaling()} computes only the rarefaction esimates for approximately K evenly spaced \code{knots}. 
-If the \code{endpoint} is larger than the reference sample size, then \code{iNEXTscaling()} computes rarefaction estimates for approximately K/2 evenly spaced \code{knots} between sample size 1 and the reference sample size, and computes extrapolation estimates for approximately K/2 evenly spaced \code{knots} between the reference sample size and the \code{endpoint}.}
+each knot represents a particular sample size for which diversity estimate will be calculated. \cr 
+If the \code{endpoint} is smaller than the reference sample size, then \code{iNEXTIE()} computes only the rarefaction esimates for approximately K evenly spaced \code{knots}. \cr
+If the \code{endpoint} is larger than the reference sample size, then \code{iNEXTIE()} computes rarefaction estimates for approximately K/2 evenly spaced \code{knots} between sample size 1 and the reference sample size, and computes extrapolation estimates for approximately K/2 evenly spaced \code{knots} between the reference sample size and the \code{endpoint}.}
 
 \item{nboot}{a positive integer specifying the number of bootstrap replications when assessing sampling uncertainty and constructing confidence intervals. Enter 0 to skip the bootstrap procedures. Default is 50.}
 
 \item{conf}{a positive number < 1 specifying the level of confidence interval. Default is 0.95.}
 
-\item{nT}{(required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "assemblage1", "assemblage2",..., etc.}
+\item{nT}{(required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "Assemblage_1", "Assemblage_2",..., etc.}
 }
 \value{
 a list of three objects: \cr\cr
@@ -53,7 +53,7 @@ a list of three objects: \cr\cr
    \item{Order.q}{the diversity order of q.}
    \item{m, mT}{the target sample size (or number of sampling units for incidence data).}
    \item{Method}{Rarefaction, Observed, or Extrapolation, depending on whether the target sample size is less than, equal to, or greater than the size of the reference sample.}
-   \item{qTD}{the estimated diversity estimate.}
+   \item{qTD}{the estimated diversity.}
    \item{qTD.LCL and qTD.UCL}{the bootstrap lower and upper confidence limits for the diversity of order q at the specified level (with a default value of 0.95).}
    \item{SC}{the standardized coverage value.}
    \item{SC.LCL, SC.UCL}{the bootstrap lower and upper confidence limits for coverage at the specified level (with a default value of 0.95).}

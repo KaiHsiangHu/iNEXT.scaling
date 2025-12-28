@@ -14,12 +14,13 @@ Authors@R:
            role = "ctb",
            email = "chao@stat.nthu.edu.tw"))
 Description: Biodiversity is a multifaceted concept covering different levels of organization from
-            genes to ecosystems. 'iNEXT.scaling' extends 'iNEXT' to estimate Hill numbers (also called taxonomic diversity)
-            under sampling without replacement model. This package provides functions to compute standardized 
-            taxonomic diversity estimates with a common sample size or sample coverage. 
-            The package features size- and coverage-based rarefaction and extrapolation 
-            sampling curves to facilitate rigorous comparison across individual assemblages. 
-            Asymptotic diversity estimates are also provided.
+            genes to ecosystems. 'iNEXT.scaling' extends 'iNEXT' and 'iNEXT.3D' to estimate Hill 
+            numbers (also called taxonomic diversity) under the sampling without replacement model. 
+            This package provides functions to compute standardized taxonomic diversity estimates 
+            with a common sample size or sample coverage under sampling without replacement model. 
+            The package features size- and coverage-based rarefaction and extrapolation sampling 
+            curves to facilitate rigorous comparison across individual assemblages. Asymptotic 
+            diversity estimates are also provided.
 License: GPL (>= 3)
 Depends: R (>= 4.0)
 Imports:

@@ -6,7 +6,7 @@
 #' (b) For \code{datatype = "incidence_raw"}, data can be input as a list of matrices/data.frames (species by sampling units); data can also be input as a single matrix/data.frame by merging all sampling units across assemblages based on species identity; in this case, the number of sampling units (\code{nT}, see below) must be specified. 
 #' @param rho the sampling fraction can be input as a vector for each assemblage, or specify a single numeric value to apply to all assemblages.
 #' @param datatype data type of input data: individual-based abundance data (\code{datatype = "abundance"}) or species by sampling-units incidence/occurrence matrix (\code{datatype = "incidence_raw"}) with all entries being 0 (non-detection) or 1 (detection).
-#' @param nT (required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "assemblage1", "assemblage2",..., etc.
+#' @param nT (required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "Assemblage_1", "Assemblage_2",..., etc.
 #' 
 #' @return a data.frame including basic data information.\cr\cr 
 #' For abundance data, basic information includes assemblage name (\code{Assemblage}), sample size in the reference sample (\code{n}), 
@@ -66,14 +66,14 @@ NULL
 #' @param size an integer vector of sample sizes (number of individuals or sampling units) for which diversity estimates will be computed. 
 #' If \code{NULL}, then diversity estimates will be computed for those sample sizes determined by the specified/default \code{endpoint} and \code{knots}.
 #' @param endpoint an integer specifying the sample size that is the \code{endpoint} for rarefaction/extrapolation. 
-#' If \code{NULL}, then \code{endpoint} \code{=} double reference sample size.
+#' If \code{NULL}, then \code{endpoint} \code{=} the maximum sample sizes, which is set to double the reference sample size when rho is less than 0.2; triple the reference sample size when rho is between 0.2 and 0.4; and the total number of individuals when rho exceeds 0.4.
 #' @param knots an integer specifying the number of equally-spaced \code{knots} (say K, default is 40) between size 1 and the \code{endpoint};
-#' each knot represents a particular sample size for which diversity estimate will be calculated.  
-#' If the \code{endpoint} is smaller than the reference sample size, then \code{iNEXTscaling()} computes only the rarefaction esimates for approximately K evenly spaced \code{knots}. 
-#' If the \code{endpoint} is larger than the reference sample size, then \code{iNEXTscaling()} computes rarefaction estimates for approximately K/2 evenly spaced \code{knots} between sample size 1 and the reference sample size, and computes extrapolation estimates for approximately K/2 evenly spaced \code{knots} between the reference sample size and the \code{endpoint}.
+#' each knot represents a particular sample size for which diversity estimate will be calculated. \cr 
+#' If the \code{endpoint} is smaller than the reference sample size, then \code{iNEXTIE()} computes only the rarefaction esimates for approximately K evenly spaced \code{knots}. \cr
+#' If the \code{endpoint} is larger than the reference sample size, then \code{iNEXTIE()} computes rarefaction estimates for approximately K/2 evenly spaced \code{knots} between sample size 1 and the reference sample size, and computes extrapolation estimates for approximately K/2 evenly spaced \code{knots} between the reference sample size and the \code{endpoint}.
 #' @param nboot a positive integer specifying the number of bootstrap replications when assessing sampling uncertainty and constructing confidence intervals. Enter 0 to skip the bootstrap procedures. Default is 50.
 #' @param conf a positive number < 1 specifying the level of confidence interval. Default is 0.95.
-#' @param nT (required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "assemblage1", "assemblage2",..., etc. 
+#' @param nT (required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "Assemblage_1", "Assemblage_2",..., etc. 
 #' 
 #' @import ggplot2
 #' @import dplyr
@@ -94,7 +94,7 @@ NULL
 #'    \item{Order.q}{the diversity order of q.}
 #'    \item{m, mT}{the target sample size (or number of sampling units for incidence data).}
 #'    \item{Method}{Rarefaction, Observed, or Extrapolation, depending on whether the target sample size is less than, equal to, or greater than the size of the reference sample.}
-#'    \item{qTD}{the estimated diversity estimate.}
+#'    \item{qTD}{the estimated diversity.}
 #'    \item{qTD.LCL and qTD.UCL}{the bootstrap lower and upper confidence limits for the diversity of order q at the specified level (with a default value of 0.95).}
 #'    \item{SC}{the standardized coverage value.}
 #'    \item{SC.LCL, SC.UCL}{the bootstrap lower and upper confidence limits for coverage at the specified level (with a default value of 0.95).}
@@ -219,12 +219,11 @@ iNEXTscaling <- function(data, rho, q = c(0, 1, 2), datatype = "abundance", size
 #' 
 #' @examples
 #' \donttest{
-#' # Plot three types of curves of taxonomic diversity with facet.var = "Assemblage"
-#' # for abundance data with order q = 0, 1, 2
+#' # Plot three types of curves of taxonomic diversity for abundance data with order q = 0, 1, 2
 #' data(Brazil_rainforest_abun_data)
 #' output_TD_abun <- iNEXTscaling(Brazil_rainforest_abun_data, rho = 0.3, 
 #'                                q = c(0, 1, 2), datatype = "abundance")
-#' ggiNEXTscaling(output_TD_abun, facet.var = "Assemblage")
+#' ggiNEXTscaling(output_TD_abun)
 #' 
 #' 
 #' # Plot three types of curves of taxonomic diversity for incidence data with order q = 0, 1, 2
@@ -499,19 +498,20 @@ type_plot = function(x_list, type, class, datatype, facet.var, color.var) {
 
 #' Compute diversity estimates with a particular set of sample sizes/coverages
 #' 
-#' \code{estimatescaling} computes diversity (Hill-Chao number with q = 0, 1 and 2) with a particular set of user-specified levels of sample sizes or sample coverages. If no sample sizes or coverages are specified, this function by default computes diversity estimates for the minimum sample coverage or minimum sample size among all samples extrapolated to double reference sizes.
+#' \code{estimatescaling} computes diversity (Hill numbers with q = 0, 1 and 2) with a particular set of user-specified levels of sample sizes or sample coverages. If no sample sizes or coverages are specified, this function by default computes diversity estimates for the minimum sample coverage or minimum sample size among all samples extrapolated to double reference sizes.
 #' @param data (a) For \code{datatype = "abundance"}, data can be input as a vector of species abundances (for a single assemblage), matrix/data.frame (species by assemblages), or a list of species abundance vectors. \cr
 #' (b) For \code{datatype = "incidence_raw"}, data can be input as a list of matrices/data.frames (species by sampling units); data can also be input as a single matrix/data.frame by merging all sampling units across assemblages based on species identity; in this case, the number of sampling units (\code{nT}, see below) must be specified. 
 #' @param rho the sampling fraction can be input as a vector for each assemblage, or specify a single numeric value to apply to all assemblages.
 #' @param q a numerical vector specifying the diversity orders. Default is \code{c(0, 1, 2)}.
 #' @param datatype data type of input data: individual-based abundance data (\code{datatype = "abundance"}) or species by sampling-units incidence/occurrence matrix (\code{datatype = "incidence_raw"}) with all entries being 0 (non-detection) or 1 (detection).
 #' @param base selection of sample-size-based (\code{base = "size"}) or coverage-based (\code{base = "coverage"}) rarefaction and extrapolation.
-#' @param level A numerical vector specifying the particular sample sizes or sample coverages (between 0 and 1) for which diversity estimates (q =0, 1 and 2) will be computed. \cr
-#' If \code{base = "coverage"} (default) and \code{level = NULL}, then this function computes the diversity estimates for the minimum sample coverage among all samples extrapolated to double reference sizes. \cr
-#' If \code{base = "size"} and \code{level = NULL}, then this function computes the diversity estimates for the minimum sample size among all samples extrapolated to double reference sizes. 
+#' @param level A numerical vector specifying the particular sample sizes or sample coverages (between 0 and 1) for which diversity estimates (q = 0, 1 and 2) will be computed. \cr
+#' If \code{base = "coverage"} (default) and \code{level = NULL}, then this function computes the diversity estimates for the minimum sample coverage among all samples extrapolated to the maximum sample sizes. \cr
+#' If \code{base = "size"} and \code{level = NULL}, then this function computes the diversity estimates for the minimum sample size among all samples extrapolated to the maximum sample sizes. \cr
+#' Specifically, the maximum extrapolation limit is set to double the reference sample size when rho is less than 0.2; triple the reference sample size when rho is between 0.2 and 0.4; and the total number of individuals when rho exceeds 0.4. 
 #' @param nboot a positive integer specifying the number of bootstrap replications when assessing sampling uncertainty and constructing confidence intervals. Enter 0 to skip the bootstrap procedures. Default is 50.
 #' @param conf a positive number < 1 specifying the level of confidence interval. Default is 0.95.
-#' @param nT (required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "assemblage1", "assemblage2",..., etc. 
+#' @param nT (required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "Assemblage_1", "Assemblage_2",..., etc. 
 #' 
 #' @return a data.frame of diversity table including the following arguments: (when \code{base = "coverage"})
 #' \item{Assemblage}{the name of assemblage.}
@@ -534,6 +534,7 @@ type_plot = function(x_list, type, class, datatype, facet.var, color.var) {
 #' output_est_cov_abun
 #' 
 #' 
+#' # Taxonomic diversity for abundance data with two target sizes (1000 and 2000)
 #' data(Brazil_rainforest_abun_data)
 #' output_est_size_abun <- estimatescaling(Brazil_rainforest_abun_data, rho = 0.3, q = c(0, 1, 2), 
 #'                                         datatype = "abundance", base = "size", 
@@ -549,10 +550,11 @@ type_plot = function(x_list, type, class, datatype, facet.var, color.var) {
 #' output_est_cov_inci
 #' 
 #' 
+#' # Taxonomic diversity for incidence data with two target sizes (30 and 40)
 #' data(Fish_incidence_data)
 #' output_est_size_inci <- estimatescaling(Fish_incidence_data, rho = 0.3, q = c(0, 1, 2), 
-#'                                         datatype = "incidence_raw", base = "coverage", 
-#'                                         level = c(0.975, 0.99))
+#'                                         datatype = "incidence_raw", base = "size", 
+#'                                         level = c(30, 40))
 #' output_est_size_inci
 #' 
 #' 
@@ -598,7 +600,7 @@ estimatescaling <- function(data, rho, q = c(0,1,2), datatype = "abundance", bas
 #' @param datatype data type of input data: individual-based abundance data (\code{datatype = "abundance"}) or species by sampling-units incidence/occurrence matrix (\code{datatype = "incidence_raw"}) with all entries being 0 (non-detection) or 1 (detection).
 #' @param nboot a positive integer specifying the number of bootstrap replications when assessing sampling uncertainty and constructing confidence intervals. Enter 0 to skip the bootstrap procedures. Default is 50.
 #' @param conf a positive number < 1 specifying the level of confidence interval. Default is 0.95.
-#' @param nT (required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "assemblage1", "assemblage2",..., etc. 
+#' @param nT (required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "Assemblage_1", "Assemblage_2",..., etc. 
 #' @param method Select \code{'Asymptotic'} or \code{'Observed'}.
 #' 
 #' @return a data frame including the following information/statistics: 

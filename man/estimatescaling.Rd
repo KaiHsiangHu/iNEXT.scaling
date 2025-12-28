@@ -28,15 +28,16 @@ estimatescaling(
 
 \item{base}{selection of sample-size-based (\code{base = "size"}) or coverage-based (\code{base = "coverage"}) rarefaction and extrapolation.}
 
-\item{level}{A numerical vector specifying the particular sample sizes or sample coverages (between 0 and 1) for which diversity estimates (q =0, 1 and 2) will be computed. \cr
-If \code{base = "coverage"} (default) and \code{level = NULL}, then this function computes the diversity estimates for the minimum sample coverage among all samples extrapolated to double reference sizes. \cr
-If \code{base = "size"} and \code{level = NULL}, then this function computes the diversity estimates for the minimum sample size among all samples extrapolated to double reference sizes.}
+\item{level}{A numerical vector specifying the particular sample sizes or sample coverages (between 0 and 1) for which diversity estimates (q = 0, 1 and 2) will be computed. \cr
+If \code{base = "coverage"} (default) and \code{level = NULL}, then this function computes the diversity estimates for the minimum sample coverage among all samples extrapolated to the maximum sample sizes. \cr
+If \code{base = "size"} and \code{level = NULL}, then this function computes the diversity estimates for the minimum sample size among all samples extrapolated to the maximum sample sizes. \cr
+Specifically, the maximum extrapolation limit is set to double the reference sample size when rho is less than 0.2; triple the reference sample size when rho is between 0.2 and 0.4; and the total number of individuals when rho exceeds 0.4.}
 
 \item{nboot}{a positive integer specifying the number of bootstrap replications when assessing sampling uncertainty and constructing confidence intervals. Enter 0 to skip the bootstrap procedures. Default is 50.}
 
 \item{conf}{a positive number < 1 specifying the level of confidence interval. Default is 0.95.}
 
-\item{nT}{(required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "assemblage1", "assemblage2",..., etc.}
+\item{nT}{(required only when \code{datatype = "incidence_raw"} and input data in a single matrix/data.frame) a vector of positive integers specifying the number of sampling units in each assemblage. If assemblage names are not specified (i.e., \code{names(nT) = NULL}), then assemblages are automatically named as "Assemblage_1", "Assemblage_2",..., etc.}
 }
 \value{
 a data.frame of diversity table including the following arguments: (when \code{base = "coverage"})
@@ -51,7 +52,7 @@ a data.frame of diversity table including the following arguments: (when \code{b
 Similar output is obtained for \code{base = "size"}. \cr\cr
 }
 \description{
-\code{estimatescaling} computes diversity (Hill-Chao number with q = 0, 1 and 2) with a particular set of user-specified levels of sample sizes or sample coverages. If no sample sizes or coverages are specified, this function by default computes diversity estimates for the minimum sample coverage or minimum sample size among all samples extrapolated to double reference sizes.
+\code{estimatescaling} computes diversity (Hill numbers with q = 0, 1 and 2) with a particular set of user-specified levels of sample sizes or sample coverages. If no sample sizes or coverages are specified, this function by default computes diversity estimates for the minimum sample coverage or minimum sample size among all samples extrapolated to double reference sizes.
 }
 \examples{
 # Taxonomic diversity for abundance data with two target coverages (93\% and 97\%)
@@ -62,6 +63,7 @@ output_est_cov_abun <- estimatescaling(Brazil_rainforest_abun_data, rho = 0.3, q
 output_est_cov_abun
 
 
+# Taxonomic diversity for abundance data with two target sizes (1000 and 2000)
 data(Brazil_rainforest_abun_data)
 output_est_size_abun <- estimatescaling(Brazil_rainforest_abun_data, rho = 0.3, q = c(0, 1, 2), 
                                         datatype = "abundance", base = "size", 
@@ -77,10 +79,11 @@ output_est_cov_inci <- estimatescaling(Fish_incidence_data, rho = 0.3, q = c(0, 
 output_est_cov_inci
 
 
+# Taxonomic diversity for incidence data with two target sizes (30 and 40)
 data(Fish_incidence_data)
 output_est_size_inci <- estimatescaling(Fish_incidence_data, rho = 0.3, q = c(0, 1, 2), 
-                                        datatype = "incidence_raw", base = "coverage", 
-                                        level = c(0.975, 0.99))
+                                        datatype = "incidence_raw", base = "size", 
+                                        level = c(30, 40))
 output_est_size_inci
 
 
