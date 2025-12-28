@@ -1,0 +1,772 @@
+---
+title: "A Quick Introduction to iNEXT.scaling via Examples"
+author: "Kai-Hsiang Hu and Anne Chao"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    vignette: >
+      %\VignetteIndexEntry{A Quick Introduction to iNEXT.scaling via Examples}
+      %\VignetteEngine{knitr::rmarkdown}
+      %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "", 
+                      fig.retina = 2,
+                      fig.align = 'center',
+                      fig.width = 6, fig.height = 4,
+                      warning = FALSE, message = FALSE)
+options("width"=200)
+
+if("gridExtra" %in% rownames(installed.packages()) == FALSE) {install.packages("gridExtra")}
+
+library(iNEXT.scaling)
+library(ggplot2)
+```
+
+
+`iNEXT.scaling` (INterpolation and EXTrapolation for upscaling biodiversity) is a sequel to [iNEXT](https://cran.r-project.org/web/packages/iNEXT/index.html) (Hsieh et al., 2016) and [iNEXT.3D](https://cran.r-project.org/web/packages/iNEXT.3D/index.html) (Chao et al., 2021). 
+\code{iNEXT.scaling} estimates Hill numbers (also called taxonomic diversity) under the sampling without replacement model. An online version "iNEXT.scaling Online"
+(https://kaihsiang-hu.shinyapps.io/iNEXT_scaling/) is also available for users without an R background.
+
+`iNEXT.scaling` features two statistical analyses (non-asymptotic and asymptotic):
+
+(1) A non-asymptotic approach based on interpolation and extrapolation for diversity
+
+`iNEXT.scaling` computes the estimated Hill numbers for standardized samples with a common sample size or sample completeness. This approach aims to compare diversity estimates for equally-large (with a common sample size) or equally-complete (with a common sample coverage) samples; it is based on the seamless rarefaction and extrapolation (R/E) sampling curves of Hill-Chao numbers for q = 0, 1 and 2. `iNEXT.scaling` offers three types of R/E sampling curves:
+
+* Sample-size-based (or size-based) R/E sampling curves: This type of sampling curve plots the diversity estimates with respect to sample size.
+
+* Coverage-based R/E sampling curves: This type of sampling curve plots the diversity estimates with respect to sample coverage.
+
+* Sample completeness curve: This curve depicts how sample coverage varies with sample size. The sample completeness curve provides a bridge between the size- and coverage-based R/E sampling curves.
+
+(2) An asymptotic approach to infer asymptotic diversity for Hill numbers
+
+`iNEXT.scaling` computes the estimated asymptotic diversity and also plots diversity profiles (q-profiles) for q between 0 and 2, in comparison with the observed diversity. Typically, the asymptotic estimates for q $\geq$ 1 are reliable, but for q < 1 (especially for q = 0, species richness), the asymptotic estimates represent only lower bounds. 
+
+
+## How to cite
+If you publish your work based on results from `iNEXT.scaling` package, you should make references to the following methodology paper and the package:
+
+*	Hu, K.-H. and Chao, A. (2025). The iNEXT.scaling package: INterpolation and EXTrapolation for upscaling biodiversity. R package available from CRAN.
+
+
+## SOFTWARE NEEDED TO RUN iNEXT.scaling IN R
+- Required: [R](https://cran.r-project.org/)
+- Suggested: [RStudio IDE](https://www.rstudio.com/products/RStudio/#Desktop)
+
+
+## HOW TO RUN iNEXT.scaling:
+The `iNEXT.scaling` package can be downloaded from CRAN or Kai-Hsiang Hu's [iNEXT.scaling_github](https://github.com/KaiHsiangHu/iNEXT.scaling) using the commands below. For a first-time installation, some additional packages must be installed and loaded; see package manual. 
+
+
+```{r eval=FALSE}
+## install iNEXT.scaling package from CRAN
+install.packages("iNEXT.scaling")  
+
+## or install the latest version from github
+install.packages('devtools')
+library(devtools)
+install_github('KaiHsiangHu/iNEXT.scaling')
+
+## import packages
+library(iNEXT.scaling)
+```
+
+
+There are six main functions in this package: 
+
+Two functions for non-asymptotic analysis with graphical displays:
+
+- **iNEXTscaling** computes standardized diversity estimates of order q = 0, 1 and 2 for rarefied and extrapolated samples at specified sample coverage values and sample sizes.
+
+- **ggiNEXTscaling** visualizes the output from the function `iNEXTscaling`.
+
+
+Two functions for point estimation and basic data information
+
+- **estimatescaling** computes diversity of order q = 0, 1 and 2 with a particular set of user-specified level of sample sizes or sample coverage values.
+
+- **DataInfoscaling** provides basic data information based on the observed data.
+
+
+Two functions for asymptotic analysis with graphical displays:
+
+- **ObsAsyscaling** computes observed and asymptotic diversity of order q between 0 and 2 (in increments of 0.2) for Hill numbers.
+
+- **ggObsAsyscaling** visualizes the output from the function `ObsAsyscaling`.
+
+
+
+## <span style="color:red;">DATA INPUT FORMAT</span>
+
+### Species abundance/incidence data format
+
+For `iNEXT.IE` package, information on species identity (or any unique identification code) and assemblage affiliation is not required. Two types of species abundance/incidence data are supported:
+
+1. Individual-based abundance data (`datatype = "abundance"`): When there are multiple assemblages, in addition to the assemblage/site names (as column names) and the species names (as row names), species abundance data (reference sample) can be input as a species (in rows) by assemblage (in columns) matrix/data.frame or a list of species abundance vectors. In the special case that there is only one assemblage, all data should be read in one column.
+
+2. Sampling-unit-based incidence data: Incidence-raw data (`datatype = "incidence_raw"`): for each assemblage, input data for a reference sample consist of a species-by-sampling-unit matrix, in addition to the sampling-unit names (as column names) and the species names (as row names). When there are N assemblages, input data consist of N lists of matrices, and each matrix is a species-by-sampling-unit matrix. Each element in the incidence raw matrix is 1 for a detection, and 0 for a non-detection. Input a matrix which combines data for all assemblages is allowed, but the argument `nT` in the function `iNEXTscaling` must be specified so that the number of sampling units in each assemblage is specified.
+  
+For example, the dataset `Brazil_rainforest_abun_data` included in the `iNEXT.scaling` package consists of species sample abundances of two assemblages/habitats: "Edge" and "Interior". Run the following code to view the first 15 rows of the abundance data. 
+
+```{r eval=FALSE}
+data("Brazil_rainforest_abun_data")
+Brazil_rainforest_abun_data
+```
+
+```{r echo=FALSE}
+data("Brazil_rainforest_abun_data")
+Brazil_rainforest_abun_data[1:15,]
+```
+
+
+We use data (`Fish_incidence_data`) collected from two time periods, namely `"2013-2015"` and `"2016-2018"`, as an example. Each time period is designated as an assemblage. The purpose was to compare  diversity of the two time periods. In each time period, species incidence/occurrence was recorded in 36 sampling units in each assemblage; each sampling unit represents a sampling date. Thus, there are 36 columns in each time period. Run the following code to view the first 6 rows and 6 columns for each matrix.
+
+
+```{r eval=FALSE}
+data("Fish_incidence_data")
+Fish_incidence_data
+```
+
+```{r echo=FALSE}
+data("Fish_incidence_data")
+lapply(Fish_incidence_data, function(x) x[1:6,1:6])
+```
+
+
+
+
+## <span style="color:red;">MAIN FUNCTION iNEXTscaling(): RAREFACTION/EXTRAPOLATION</span>
+
+We first describe the main function `iNEXTscaling()` with default arguments: 
+
+```{r eval=FALSE}
+iNEXTscaling(data, rho, q = c(0, 1, 2), datatype = "abundance", size = NULL, endpoint = NULL, knots = 40, nboot = 50, conf = 0.95, nT = NULL)
+```
+
+
+The arguments of this function are briefly described below, and will be explained in more details by illustrative examples in later text. This main function computes standardized diversity estimates of order q = 0, 1 and 2, the sample coverage estimates, and related statistics for K (if `knots = K` in the specified argument) evenly-spaced knots (sample sizes) between size 1 and the `endpoint`, where the endpoint is described below. Each knot represents a particular sample size for which diversity estimates will be calculated. By default, `endpoint` = the maximum sample sizes or sampling units (see arguments). For example, if `endpoint = 10`, `knot = 4` is specified, diversity estimates will be computed for a sequence of samples with sizes (1, 4, 7, 10).  
+
+
+<table style="width:100%;">
+<colgroup>
+<col width="20%">
+<col width="80%">
+</colgroup>
+<thead>
+<tr class="header">
+<th align="center">Argument</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><code>data</code></td>
+<td align="left">
+(a) For <code>datatype = "abundance"</code>, data can be input as a vector of species abundances (for a single assemblage), matrix/data.frame (species by assemblages), or a list of species abundance vectors. \cr
+(b) For <code>datatype = "incidence_raw"</code>, data can be input as a list of matrices/data.frames (species by sampling units); data can also be input as a single matrix/data.frame by merging all sampling units across assemblages based on species identity; in this case, the number of sampling units (nT, see below) must be specified. </td>
+</tr>
+<tr class="even">
+<td align="center"><code>rho</code></td>
+<td align="left">the sampling fraction can be input as a vector for each assemblage, or specify a single numeric value to apply to all assemblages.</td>
+</tr>
+<tr class="odd">
+<td align="center"><code>q</code></td>
+<td align="left">a numerical vector specifying the diversity orders. Default is <code>c(0, 1, 2)</code>.</td>
+</tr>
+<tr class="even">
+<td align="center"><code>datatype</code></td>
+<td align="left">data type of input data: individual-based abundance data (<code>datatype = "abundance"</code>), or species by sampling-units incidence/occurrence matrix (<code>datatype = "incidence_raw"</code>) with all entries being 0 (non-detection) or 1 (detection).</td>
+</tr>
+<tr class="odd">
+<td align="center"><code>size</code></td>
+<td align="left">an integer vector of sample sizes (number of individuals or sampling units) for which diversity estimates will be computed.
+If <code>NULL</code>, then diversity estimates will be computed for those sample sizes determined by the specified/default <code>endpoint</code> and <code>knots</code>.</td>
+</tr>
+<tr class="even">
+<td align="center"><code>endpoint</code></td>
+<td align="left">an integer specifying the sample size that is the <code>endpoint</code> for rarefaction/extrapolation.
+If NULL, then <code>endpoint</code> <code>=</code> the maximum sample sizes, which is set to double the reference sample size when rho is less than 0.2; triple the reference sample size when rho is between 0.2 and 0.4; and the total number of individuals when rho exceeds 0.4.</td>
+</tr>
+<tr class="odd">
+<td align="center"><code>knots</code></td>
+<td align="left">an integer specifying the number of equally-spaced <code>knots</code> (say K, default is 40) between size 1 and the <code>endpoint</code>; each knot represents a particular sample size for which diversity estimate will be calculated.
+If the <code>endpoint</code> is smaller than the reference sample size, then <code>iNEXTscaling()</code> computes only the rarefaction estimates for approximately K evenly spaced <code>knots</code>. 
+If the <code>endpoint</code> is larger than the reference sample size, then <code>iNEXTscaling()</code> computes rarefaction estimates for approximately K/2 evenly spaced <code>knots</code> between sample size 1 and the reference sample size, and computes extrapolation estimates for approximately K/2 evenly spaced <code>knots</code> between the reference sample size and the <code>endpoint</code>.</td>
+</tr>
+<tr class="even">
+<td align="center"><code>nboot</code></td>
+<td align="left">a positive integer specifying the number of bootstrap replications when assessing sampling uncertainty and constructing confidence intervals. Enter 0 to skip the bootstrap procedures. Default is 50.</td>
+</tr>
+<tr class="odd">
+<td align="center"><code>conf</code></td>
+<td align="left">a positive number < 1 specifying the level of confidence interval. Default is 0.95.</td>
+</tr>
+<tr class="even">
+<td align="center"><code>nT</code></td>
+<td align="left">(required only when <code>datatype = "incidence_raw"</code> and input data in a single matrix/data.frame) a vector of nonnegative integers specifying the number of sampling units in each assemblage. If assemblage names are not specified(i.e., <code>names(nT) = NULL</code>), then assemblages are automatically named as "Assemblage_1", "Assemblage_2",..., etc. </td>
+</tr>
+
+
+</tbody>
+</table>
+
+
+The main function `iNEXTscaling()` returns the `iNEXTscaling` object, which can be further used to make plots using the function `ggiNEXTscaling()` to be described below. The `"iNEXTscaling"` object includes three lists: 
+
+(1) `$TDInfo` for summarizing data information. 
+
+(2) `$TDiNextEst` for showing diversity estimates along with related statistics for a series of rarefied and extrapolated samples; there are two data frames (`$size_based` and `$coverage_based`) conditioning on standardized sample size or sample coverage, respectively.
+
+(3) `$TDAsyEst` for showing asymptotic diversity estimates along with related statistics.
+
+## <span style="color:red;">FUNCTION ggiNEXTscaling(): GRAPHIC DISPLAYS</span>
+
+The function `ggiNEXTscaling()`, which extends `ggplot2` with default arguments, is described as follows: 
+
+```{r eval=FALSE}
+ggiNEXTscaling(output, type = 1:3, facet.var = "Assemblage", color.var = "Order.q")  
+```
+
+Here `output` is the `iNEXTscaling()` object. Three types of curves are allowed for diversity:  
+
+(1) Sample-size-based R/E curve (`type = 1`): This curve plots diversity estimates with confidence intervals as a function of sample size.  
+
+(2) Sample completeness curve (`type = 2`): This curve plots the sample coverage with respect to sample size. 
+
+(3) Coverage-based R/E curve (`type = 3`): This curve plots the diversity estimates with confidence intervals as a function of sample coverage. 
+
+The argument `facet.var = "Order.q"`, `facet.var = "Assemblage"`, `facet.var = "Both"`, or `facet.var = "None"` is used to create a separate plot for each value of the specified variable. 
+
+The `ggiNEXTscaling()` function is a wrapper with the package `ggplot2` to create a rarefaction/extrapolation sampling curve in a single line of code. The figure object is of class `"ggplot"`, so it can be manipulated by using the `ggplot2` tools. 
+
+
+## <span style="color:blue;">TAXONOMIC DIVERSITY (TD): RAREFACTION/EXTRAPOLATION VIA EXAMPLES</span>
+
+### EXAMPLE 1: TD rarefaction/extrapolation for abundance data 
+
+
+```{r, echo=FALSE, cache = TRUE}
+data(Brazil_rainforest_abun_data)
+
+output_TD_abun <- iNEXTscaling(Brazil_rainforest_abun_data, rho = 0.3, q = c(0, 1, 2), datatype = "abundance")
+
+data(Fish_incidence_data)
+
+output_TD_inci <- iNEXTscaling(Fish_incidence_data, rho = 0.3, q = c(0, 1, 2), datatype = "incidence_raw")
+```
+
+Based on the dataset (`Brazil_rainforest_abun_data`) included in the package, the following commands return all numerical results for `TD`. The first list of the output (`$TDInfo`) returns basic data information including the name of the Assemblage, sample size (`n`), total abundance in the overall assemblage (`N`), sampling fraction of the reference sample (`rho`), observed species richness (`S.obs`), sample coverage estimate of the reference sample with size n (`SC(n)`), sample coverage estimate of the extrapolated sample with size 2n (`SC(2n)`) as well as the first five species abundance frequency counts in the reference sample (`f1-f5`). The output is identical to that based on the function `DataInfoscaling()` by specifying `datatype = "abundance"`; see later text. Thus, if only data information is required, the simpler function `DataInfoscaling()` (see later text) can be used to obtain the same output. More information about the observed diversity (for any order q between 0 and 2) can be obtained by function `ObsAsyscaling()`, which will be introduced later.
+
+```{r eval=FALSE}
+data(Brazil_rainforest_abun_data)
+output_TD_abun <- iNEXTscaling(Brazil_rainforest_abun_data, rho = 0.3, 
+                               q = c(0, 1, 2), datatype = "abundance")
+output_TD_abun$TDInfo
+```
+
+```{r echo=FALSE}
+output_TD_abun[1]$TDInfo$`SC(n)`  <- round(output_TD_abun[1]$TDInfo$`SC(n)`, 3)
+output_TD_abun[1]$TDInfo$`SC(2n)` <- round(output_TD_abun[1]$TDInfo$`SC(2n)`, 3)
+output_TD_abun[1]
+```
+
+The second list of the output (`$TDiNextEst`) includes size- and coverage-based standardized diversity estimates and related statistics computed for 40 knots by default (for example in the "Edge" assemblage, corresponding to the target sample size `m` = 1, 95, 189, ..., 1699, 1794, 1795, 1983, ..., 5382), which locates the reference sample size at the mid-point of the selected knots. There are two data frames (`$size_based` and `$coverage_based`). 
+
+The first data frame (`$size_based`) includes the name of the Assemblage, diversity order (`Order.q`), the target sample size (`m`), the `Method` (`Rarefaction`, `Observed`, or `Extrapolation`, depending on whether the size `m` is less than, equal to, or greater than the reference sample size), the diversity estimate of order q (`qTD`), the lower and upper confidence limits of diversity (`qTD.LCL` and `qTD.UCL`) conditioning on the sample size, and the corresponding sample coverage estimate (`SC`) along with the lower and upper confidence limits of sample coverage (`SC.LCL` and `SC.UCL`). These sample coverage estimates with confidence intervals are used for plotting the sample completeness curve. If the argument `nboot` is greater than zero, then a bootstrap method is applied to obtain the confidence intervals for the diversity and sample coverage estimates. Otherwise, all confidence intervals will not be computed. Here only the first six rows of the `$size_based` output are displayed:
+
+```{r eval=FALSE}
+output_TD_abun$TDiNextEst$size_based
+```
+
+```{r, echo=FALSE}
+output_TD_abun$TDiNextEst$size_based$qTD     <- round(output_TD_abun$TDiNextEst$size_based$qTD, 3)
+output_TD_abun$TDiNextEst$size_based$qTD.LCL <- round(output_TD_abun$TDiNextEst$size_based$qTD.LCL, 3)
+output_TD_abun$TDiNextEst$size_based$qTD.UCL <- round(output_TD_abun$TDiNextEst$size_based$qTD.UCL, 3)
+output_TD_abun$TDiNextEst$size_based$SC      <- round(output_TD_abun$TDiNextEst$size_based$SC, 3)
+output_TD_abun$TDiNextEst$size_based$SC.LCL  <- round(output_TD_abun$TDiNextEst$size_based$SC.LCL, 3)
+output_TD_abun$TDiNextEst$size_based$SC.UCL  <- round(output_TD_abun$TDiNextEst$size_based$SC.UCL, 3)
+output_TD_abun$TDiNextEst$size_based[1:6,]
+```
+
+The second data frame (`$coverage_based`) includes the name of assemblage, the diversity order (`Order.q`), the target sample coverage value (`SC`), the corresponding sample size (`m`), the `Method` (`Rarefaction`, `Observed`, or `Extrapolation`, depending on whether the coverage `SC` is less than, equal to, or greater than the reference sample coverage), the diversity estimate of order q (`qTD`), the lower and upper confidence limits of diversity (`qTD.LCL` and `qTD.UCL`) conditioning on the target sample coverage value. Here only the first six rows of the `$coverage_based` output are displayed below: (Note for a fixed coverage value, the confidence interval in the `$coverage_based` table is wider than the corresponding interval in the `$size_based` table. This is because, for a given coverage value, the sample size needed to attain a fixed coverage value varies with bootstrap replication, leading to higher uncertainty on the resulting diversity estimate.)
+
+
+```{r, eval=FALSE}
+output_TD_abun$TDiNextEst$coverage_based
+```
+
+```{r, echo=FALSE}
+output_TD_abun$TDiNextEst$coverage_based$qTD     <- round(output_TD_abun$TDiNextEst$coverage_based$qTD, 3)
+output_TD_abun$TDiNextEst$coverage_based$qTD.LCL <- round(output_TD_abun$TDiNextEst$coverage_based$qTD.LCL, 3)
+output_TD_abun$TDiNextEst$coverage_based$qTD.UCL <- round(output_TD_abun$TDiNextEst$coverage_based$qTD.UCL, 3)
+output_TD_abun$TDiNextEst$coverage_based$SC      <- round(output_TD_abun$TDiNextEst$coverage_based$SC, 3)
+output_TD_abun$TDiNextEst$coverage_based$m       <- round(output_TD_abun$TDiNextEst$coverage_based$m, 3)
+output_TD_abun$TDiNextEst$coverage_based[1:6,]
+```
+
+The third list of the output (`$TDAsyEst`) includes the name of the Assemblage, diversity label (`qTD`, species richness for q = 0, Shannon diversity for q = 1, and Simpson diversity for q = 2), the observed diversity (`TD_obs`), asymptotic diversity estimate (`TD_asy`) and its estimated bootstrap standard error (`s.e.`) as well as the confidence intervals for asymptotic diversity (`qTD.LCL` and `qTD.UCL`). These statistics are computed only for q = 0, 1 and 2. More detailed information about asymptotic and observed diversity estimates for any order q between 0 and 2 can be obtained from function `ObsAsyscaling()`. The output for `$TDAsyEst` is shown below:
+
+```{r, eval=FALSE}
+output_TD_abun$TDAsyEst
+```
+
+```{r, echo=FALSE}
+tmp = output_TD_abun$TDAsyEst
+tmp[,-(1:2)] = round(tmp[,-(1:2)], 3)
+tmp
+```
+
+The `ggiNEXTscaling` function can be used to make graphical displays for rarefaction and extrapolation sampling curves. When `facet.var = "Assemblage"` is specified in the `ggiNEXTscaling` function, it creates a separate plot for each assemblage; within each assemblage, different color curves represent diversity of different orders. An example for showing sample-size-based rarefaction/extrapolation curves (`type = 1`) is given below:
+
+```{r eval=FALSE}
+# TD sample-size-based R/E curves, separating by "Assemblage"
+ggiNEXTscaling(output_TD_abun, type = 1, facet.var = "Assemblage")
+```
+
+```{r echo=FALSE}
+out <- ggiNEXTscaling(output_TD_abun, type = 1, facet.var = "Assemblage")
+out + theme(text = element_text(size = 12))
+```
+
+When `facet.var = "Order.q"` is specified in the `ggiNEXTscaling` function, it creates a separate plot for each diversity order; within each plot, different color curves represent different assemblages. An example is shown below:
+
+```{r eval=FALSE}
+# TD sample-size-based R/E curves, separating by "Order.q"
+ggiNEXTscaling(output_TD_abun, type = 1, facet.var = "Order.q")
+```
+
+```{r echo=FALSE}
+out <- ggiNEXTscaling(output_TD_abun, type = 1, facet.var = "Order.q")
+out + theme(text = element_text(size = 12))
+```
+
+The following commands return the sample completeness (sample coverage) curve (`type = 2`) in which different colors represent different assemblages. 
+
+```{r eval=FALSE}
+# Sample completeness curves for abundance data, separating by "Assemblage"
+ggiNEXTscaling(output_TD_abun, type = 2, color.var = "Assemblage")
+```
+
+```{r echo=FALSE}
+out <- ggiNEXTscaling(output_TD_abun, type = 2, color.var = "Assemblage")
+out + theme(text = element_text(size = 12))
+```
+
+The following commands return the coverage-based rarefaction/extrapolation sampling curves in which different color curves represent three diversity orders within each assemblage (`facet.var = "Assemblage"`), or represent two assemblages within each diversity order (`facet.var = "Order.q"`), respectively.
+
+```{r eval=FALSE}
+# TD coverage-based R/E curves, separating by "Assemblage"
+ggiNEXTscaling(output_TD_abun, type = 3, facet.var = "Assemblage")
+```
+
+```{r echo=FALSE}
+out <- ggiNEXTscaling(output_TD_abun, type = 3, facet.var = "Assemblage")
+out + theme(text = element_text(size = 12))
+```
+
+```{r eval=FALSE}
+# TD coverage-based R/E curves, separating by "Order.q"
+ggiNEXTscaling(output_TD_abun, type = 3, facet.var = "Order.q")
+```
+
+```{r echo=FALSE}
+out <- ggiNEXTscaling(output_TD_abun, type = 1, facet.var = "Order.q")
+out + theme(text = element_text(size = 12))
+```
+
+
+### EXAMPLE 2: TD rarefaction/extrapolation for incidence data
+
+Based on the dataset (`Fish_incidence_data`) included in the package, the following commands return all numerical results for `TD`. The first list of the output (`$TDInfo`) returns basic data information including the name of the Assemblage, number of sampling units (`T`), total number of sampling units in the overall assemblage (`T*`), sampling fraction of the reference sample (`rho`), total number of incidences (`U`), observed species richness (`S.obs`), sample coverage estimate of the reference sample with size T (`SC(T)`), sample coverage estimate of the extrapolated sample with size 2T (`SC(2T)`) as well as the first five species incidence frequency counts in the reference sample (`Q1-Q5`). The output is identical to that based on the function `DataInfoscaling()` by specifying `datatype = "incidence_raw"`; see later text. Thus, if only data information is required, the simpler function `DataInfoscaling()` (see later text) can be used to obtain the same output. More information about the observed diversity (for any order q between 0 and 2) can be obtained by function `ObsAsyscaling()`, which will be introduced later.
+
+```{r eval=FALSE}
+data(Fish_incidence_data)
+output_TD_inci <- iNEXTscaling(Fish_incidence_data, rho = 0.3, 
+                               q = c(0, 1, 2), datatype = "incidence_raw")
+output_TD_inci$TDInfo
+```
+
+```{r echo=FALSE}
+output_TD_inci[1]$TDInfo$`SC(T)`  <- round(output_TD_inci[1]$TDInfo$`SC(T)`,3)
+output_TD_inci[1]$TDInfo$`SC(2T)` <- round(output_TD_inci[1]$TDInfo$`SC(2T)`,3)
+output_TD_inci[1]
+```
+
+The second list of the output (`$TDiNextEst`) includes size- and coverage-based standardized diversity estimates and related statistics computed for 40 knots by default (for example in the `"2013-2015"` time period, corresponding to the target number of sample units `mT` = 1, 2, 4, ..., 34, 36, 37, 40, ..., 108), which locates the reference sampling units at the mid-point of the selected knots. There are two data frames (`$size_based` and `$coverage_based`). 
+
+The first data frame (`$size_based`) includes the name of the Assemblage, diversity order (`Order.q`), the target number of sampling units (`mT`), the `Method` (`Rarefaction`, `Observed`, or `Extrapolation`, depending on whether the target number of sample units `mT` is less than, equal to, or greater than the number of sampling units in the reference sample), the diversity estimate of order q (`qTD`), the lower and upper confidence limits of diversity (`qTD.LCL` and `qTD.UCL`) conditioning on the sample size, and the corresponding sample coverage estimate (`SC`) along with the lower and upper confidence limits of sample coverage (`SC.LCL` and `SC.UCL`). These sample coverage estimates with confidence intervals are used for plotting the sample completeness curve. If the argument `nboot` is greater than zero, then a bootstrap method is applied to obtain the confidence intervals for the diversity and sample coverage estimates. Otherwise, all confidence intervals will not be computed. Here only the first six rows of the `$size_based` output are displayed:
+
+```{r eval=FALSE}
+output_TD_inci$TDiNextEst$size_based
+```
+
+```{r, echo=FALSE}
+output_TD_inci$TDiNextEst$size_based$qTD     <- round(output_TD_inci$TDiNextEst$size_based$qTD, 3)
+output_TD_inci$TDiNextEst$size_based$qTD.LCL <- round(output_TD_inci$TDiNextEst$size_based$qTD.LCL, 3)
+output_TD_inci$TDiNextEst$size_based$qTD.UCL <- round(output_TD_inci$TDiNextEst$size_based$qTD.UCL, 3)
+output_TD_inci$TDiNextEst$size_based$SC      <- round(output_TD_inci$TDiNextEst$size_based$SC, 3)
+output_TD_inci$TDiNextEst$size_based$SC.LCL  <- round(output_TD_inci$TDiNextEst$size_based$SC.LCL, 3)
+output_TD_inci$TDiNextEst$size_based$SC.UCL  <- round(output_TD_inci$TDiNextEst$size_based$SC.UCL, 3)
+output_TD_inci$TDiNextEst$size_based[1:6,]
+```
+
+The second data frame (`$coverage_based`) includes the name of assemblage, the diversity order (`Order.q`), the target sample coverage value (`SC`), the corresponding number of sampling units (`mT`), the `Method` (`Rarefaction`, `Observed`, or `Extrapolation`, depending on whether the coverage `SC` is less than, equal to, or greater than the reference sample coverage), the diversity estimate of order q (`qTD`), the lower and upper confidence limits of diversity (`qTD.LCL` and `qTD.UCL`) conditioning on the target sample coverage value. Here only the first six rows of the `$coverage_based` output are displayed below: (Note for a fixed coverage value, the confidence interval in the  `$coverage_based` table is wider than the corresponding interval in the `$size_based` table. This is because, for a given coverage value, the sample size needed to attain a fixed coverage value varies with bootstrap replication, leading to higher uncertainty on the resulting diversity estimate.)
+
+
+```{r, eval=FALSE}
+output_TD_inci$TDiNextEst$coverage_based
+```
+
+```{r, echo=FALSE}
+output_TD_inci$TDiNextEst$coverage_based$qTD     <- round(output_TD_inci$TDiNextEst$coverage_based$qTD, 3)
+output_TD_inci$TDiNextEst$coverage_based$qTD.LCL <- round(output_TD_inci$TDiNextEst$coverage_based$qTD.LCL, 3)
+output_TD_inci$TDiNextEst$coverage_based$qTD.UCL <- round(output_TD_inci$TDiNextEst$coverage_based$qTD.UCL, 3)
+output_TD_inci$TDiNextEst$coverage_based$SC      <- round(output_TD_inci$TDiNextEst$coverage_based$SC, 3)
+output_TD_inci$TDiNextEst$coverage_based$mT      <- round(output_TD_inci$TDiNextEst$coverage_based$mT, 3)
+output_TD_inci$TDiNextEst$coverage_based[1:6,]
+```
+
+The third list of the output (`$TDAsyEst`) includes the name of the Assemblage, diversity label (`qTD`, species richness for q = 0, Shannon diversity for q = 1, and Simpson diversity for q = 2), the observed diversity (`TD_obs`), asymptotic diversity estimate (`TD_asy`) and its estimated bootstrap standard error (`s.e.`) as well as the confidence intervals for asymptotic diversity (`qTD.LCL` and `qTD.UCL`). These statistics are computed only for q = 0, 1 and 2. More detailed information about asymptotic and observed diversity estimates for any order q between 0 and 2 can be obtained from function `ObsAsyscaling()`. The output is shown below:
+
+```{r, eval=FALSE}
+output_TD_inci$TDAsyEst
+```
+
+```{r, echo=FALSE}
+tmp = output_TD_inci$TDAsyEst
+tmp[,-(1:2)] = round(tmp[,-(1:2)], 3)
+tmp
+```
+
+The `ggiNEXTscaling` function can be used to make graphical displays for rarefaction and extrapolation sampling curves. When `facet.var = "Assemblage"` is specified in the `ggiNEXTscaling` function, it creates a separate plot for each assemblage; within each assemblage, different color curves represent diversity of different orders. An example for showing sample-size-based rarefaction/extrapolation curves (`type = 1`) for incidence data is given below:
+
+```{r eval=FALSE}
+# TD sample-size-based R/E curves for incidence data, separating by "Assemblage"
+ggiNEXTscaling(output_TD_inci, type = 1, facet.var = "Assemblage")
+```
+
+```{r echo=FALSE}
+out <- ggiNEXTscaling(output_TD_inci, type = 1, facet.var = "Assemblage")
+out + theme(text = element_text(size = 12))
+```
+
+When `facet.var = "Order.q"` is specified in the `ggiNEXTscaling` function, it creates a separate plot for each diversity order; within each plot, different color curves represent different assemblages. An example is shown below:
+
+```{r eval=FALSE}
+# TD sample-size-based R/E curves for incidence data, separating by "Order.q"
+ggiNEXTscaling(output_TD_inci, type = 1, facet.var = "Order.q")
+```
+
+```{r echo=FALSE}
+out <- ggiNEXTscaling(output_TD_inci, type = 1, facet.var = "Order.q")
+out + theme(text = element_text(size = 12))
+```
+
+The following commands return the sample completeness (sample coverage) curve (`type = 2`) in which different colors are used for different assemblages. 
+
+```{r eval=FALSE}
+# Sample completeness curves for incidence data, separating by "Assemblage"
+ggiNEXTscaling(output_TD_inci, type = 2, color.var = "Assemblage")
+```
+
+```{r echo=FALSE}
+out <- ggiNEXTscaling(output_TD_inci, type = 2, color.var = "Assemblage")
+out + theme(text = element_text(size = 12))
+```
+
+The following commands return the coverage-based rarefaction/extrapolation sampling curves in which different color curves represent three diversity orders within each assemblage (`facet.var = "Assemblage"`), or represent two assemblages within each diversity order (`facet.var = "Order.q"`), respectively.
+
+```{r eval=FALSE}
+# TD coverage-based R/E curves for incidence data, separating by "Assemblage"
+ggiNEXTscaling(output_TD_inci, type = 3, facet.var = "Assemblage")
+```
+
+```{r echo=FALSE}
+out <- ggiNEXTscaling(output_TD_inci, type = 3, facet.var = "Assemblage")
+out + theme(text = element_text(size = 12))
+```
+
+```{r eval=FALSE}
+# TD coverage-based R/E curves for incidence data, separating by "Order.q"
+ggiNEXTscaling(output_TD_inci, type = 3, facet.var = "Order.q")
+```
+
+```{r echo=FALSE}
+out <- ggiNEXTscaling(output_TD_inci, type = 3, facet.var = "Order.q")
+out + theme(text = element_text(size = 12))
+```
+
+
+
+## <span style="color:red;">FUNCTION DataInfoscaling(): DATA INFORMATION</span> 
+
+The function `DataInfoscaling()` provides basic data information for the reference sample in each individual assemblage. The function `DataInfoscaling()` with default arguments is shown below:
+ 
+```{r eval=FALSE}
+DataInfoscaling(data, rho, datatype = "abundance", nT = NULL) 
+```
+
+All arguments in the above function are the same as those for the main function `iNEXTscaling`. Running the `DataInfoscaling()` function returns basic data information including sample size (`n`) or number of sampling units (`T`) in the reference sample, total abundance (`N`) or total number of sampling units (`T*`) in the overall assemblage, sampling fraction of the reference sample (`rho`), total number of incidences (`U`), observed species richness (`S.obs`), two sample coverage estimates (`SC(n)` and `SC(2n)`) as well as the first five species abundance counts (`f1`-`f5`) or incidence frequency counts (`Q1`-`Q5`). We use Brazil_rainforest_abun_data and Fish_incidence_data to demo the function for each dimension of diversity. 
+
+### TAXONOMIC DIVERSITY (TD): Basic data information for abundance data
+
+```{r eval=FALSE}
+data(Brazil_rainforest_abun_data)
+DataInfoscaling(Brazil_rainforest_abun_data, rho = 0.3, datatype = "abundance")
+```
+
+```{r echo=FALSE}
+tmp <- DataInfoscaling(Brazil_rainforest_abun_data, rho = 0.3, datatype = "abundance")
+tmp$`SC(n)`  <- round(tmp$`SC(n)`, 3)
+tmp$`SC(2n)` <- round(tmp$`SC(2n)`, 3)
+tmp
+```
+
+Output description:
+
+- `Assemblage` = assemblage name. 
+
+- `n` = number of observed individuals in the reference sample (sample size).
+
+- `N` = total abundance in the overall assemblage.
+
+- `rho` = sampling fraction of the reference sample.
+
+- `S.obs` = number of observed species in the reference sample.
+
+- `SC(n)` = sample coverage estimate of the reference sample with size n.
+
+- `SC(2n)` = sample coverage estimate of the reference sample with size 2n.
+
+- `f1`-`f5` = the first five species abundance frequency counts in the reference sample.
+
+
+### TAXONOMIC DIVERSITY (TD): Basic data information for incidence data
+
+```{r eval=FALSE}
+data(Fish_incidence_data)
+DataInfoscaling(Fish_incidence_data, rho = 0.3, datatype = "incidence_raw")
+```
+
+```{r echo=FALSE}
+tmp <- DataInfoscaling(Fish_incidence_data, rho = 0.3, datatype = "incidence_raw")
+tmp$`SC(T)`  <- round(tmp$`SC(T)`, 3)
+tmp$`SC(2T)` <- round(tmp$`SC(2T)`, 3)
+tmp
+```
+
+Output description:
+
+- `Assemblage` = assemblage name. 
+
+- `T` = number of sampling units in the reference sample (sample size for incidence data).
+
+- `T*` = total number of sampling units in the overall assemblage.
+
+- `rho` = sampling fraction of the reference sample.
+
+- `U` = total number of incidences in the reference sample.
+
+- `S.obs` = number of observed species in the reference sample.
+
+- `SC(T)` = sample coverage estimate of the reference sample with size T.
+
+- `SC(2T)` = sample coverage estimate of the reference sample with size 2T.
+
+- `Q1`-`Q5` = the first five species incidence frequency counts in the reference sample.
+
+
+
+## <span style="color:red;">FUNCTION estimatescaling(): POINT ESTIMATION</span>
+
+`estimatescaling` is used to compute diversity estimates with q = 0, 1, 2 under any specified levels of sample size (when `base = "size"`) and sample coverage values (when `base = "coverage"`) for abundance data (`datatype = "abundance"`) or incidence data (`datatype = "incidence_raw"`). When `base = "size"`, `level` can be specified with a particular vector of sample sizes (greater than 0); if `level = NULL`, this function computes the diversity estimates for the minimum sample size among all samples extrapolated to the maximum sample sizes. When `base = "coverage"`, `level` can be specified with a particular vector of sample coverage values (between 0 and 1); if `level = NULL`, this function computes the diversity estimates for the minimum sample coverage among all samples extrapolated to the maximum sample sizes. Specifically, the maximum extrapolation limit is set to double the reference sample size when rho is less than 0.2; triple the reference sample size when rho is between 0.2 and 0.4; and the total number of individuals when rho exceeds 0.4. All arguments in the function are the same as those for the main function `iNEXTscaling`.
+
+```{r eval=FALSE}
+estimatescaling(data, rho, q = c(0,1,2), datatype = "abundance", base = "coverage", level = NULL, nboot = 50, conf = 0.95, nT = NULL) 
+```
+
+## <span style="color:blue;">TAXONOMIC DIVERSITY (TD): point estimation</span>
+
+### Example 7a: TD for abundance data with two target coverage values (93% and 97%)
+
+The following commands return the TD estimates with two specified levels of sample coverage (93% and 97%) for the `Brazil_rainforest_abun_data`.  
+
+```{r, eval=FALSE}
+data(Brazil_rainforest_abun_data)
+output_est_cov_abun <- estimatescaling(Brazil_rainforest_abun_data, rho = 0.3, q = c(0, 1, 2), 
+                                       datatype = "abundance", base = "coverage", 
+                                       level = c(0.93, 0.97))
+output_est_cov_abun
+```
+
+```{r, echo=FALSE}
+output_est_cov_abun <- estimatescaling(Brazil_rainforest_abun_data, rho = 0.3, q = c(0, 1, 2), 
+                                       datatype = "abundance", base = "coverage", 
+                                       level = c(0.93, 0.97))
+
+output_est_cov_abun[,c('SC', 'm', 'qTD', 's.e.', 'qTD.LCL', 'qTD.UCL')] = 
+  round(output_est_cov_abun[,c('SC', 'm', 'qTD', 's.e.', 'qTD.LCL', 'qTD.UCL')], 3)
+
+output_est_cov_abun
+```
+
+### Example 7b: TD for abundance data with two target sizes values (1000 and 2000)
+
+The following commands return the TD estimates with two specified levels of sample sizes (1000 and 2000) for the `Brazil_rainforest_abun_data`.  
+
+```{r, eval=FALSE}
+data(Brazil_rainforest_abun_data)
+output_est_size_abun <- estimatescaling(Brazil_rainforest_abun_data, rho = 0.3, q = c(0, 1, 2), 
+                                        datatype = "abundance", base = "size", 
+                                        level = c(1000, 2000))
+output_est_size_abun
+```
+
+```{r, echo=FALSE}
+output_est_size_abun <- estimatescaling(Brazil_rainforest_abun_data, rho = 0.3, q = c(0, 1, 2), 
+                                        datatype = "abundance", base = "size", 
+                                        level = c(1000, 2000))
+
+output_est_size_abun[,c('SC', 'm', 'qTD', 's.e.', 'qTD.LCL', 'qTD.UCL')] = 
+  round(output_est_size_abun[,c('SC', 'm', 'qTD', 's.e.', 'qTD.LCL', 'qTD.UCL')], 3)
+
+output_est_size_abun
+```
+
+### Example 7c: TD for incidence data with two target coverage values (97.5% and 99%)
+
+The following commands return the TD estimates with two specified levels of sample coverage (97.5% and 99%) for the `Fish_incidence_data`.
+
+```{r, eval=FALSE}
+data(Fish_incidence_data)
+output_est_cov_inci <- estimatescaling(Fish_incidence_data, rho = 0.3, q = c(0, 1, 2), 
+                                       datatype = "incidence_raw", base = "coverage", 
+                                       level = c(0.975, 0.99))
+output_est_cov_inci
+```
+
+```{r, echo=FALSE}
+output_est_cov_inci <- estimatescaling(Fish_incidence_data, rho = 0.3, q = c(0, 1, 2), 
+                                       datatype = "incidence_raw", base = "coverage", 
+                                       level = c(0.975, 0.99))
+
+output_est_cov_inci[,c('SC', 'mT', 'qTD', 's.e.', 'qTD.LCL', 'qTD.UCL')] = 
+  round(output_est_cov_inci[,c('SC', 'mT', 'qTD', 's.e.', 'qTD.LCL', 'qTD.UCL')], 3)
+
+output_est_cov_inci
+```
+
+### Example 7d: TD for incidence data with two target sizes values (30 and 40)
+
+The following commands return the TD estimates with two specified levels of sample sizes (30 and 40) for the `Fish_incidence_data`.
+
+```{r, eval=FALSE}
+data(Fish_incidence_data)
+output_est_size_inci <- estimatescaling(Fish_incidence_data, rho = 0.3, q = c(0, 1, 2), 
+                                        datatype = "incidence_raw", base = "size", 
+                                        level = c(30, 40))
+output_est_size_inci
+```
+
+```{r, echo=FALSE}
+output_est_size_inci <- estimatescaling(Fish_incidence_data, rho = 0.3, q = c(0, 1, 2), 
+                                        datatype = "incidence_raw", base = "size", 
+                                        level = c(30, 40))
+
+output_est_size_inci[,c('SC', 'mT', 'qTD', 's.e.', 'qTD.LCL', 'qTD.UCL')] = 
+  round(output_est_size_inci[,c('SC', 'mT', 'qTD', 's.e.', 'qTD.LCL', 'qTD.UCL')], 3)
+
+output_est_size_inci
+```
+
+
+## <span style="color:red;">FUNCTION ObsAsyscaling: ASYMPTOTIC AND OBSERVED DIVERSITY PROFILES</span>
+
+```{r, eval=FALSE}
+ObsAsyscaling(data, rho, q = seq(0, 2, 0.2), datatype = "abundance", nboot = 50, conf = 0.95, nT = NULL, method = c('Asymptotic', 'Observed'))
+```
+
+All arguments in the above function are the same as those for the main function `iNEXTscaling` (except that the default of `q` here is `seq(0, 2, 0.2)`). The function `ObsAsyscaling()` computes observed and asymptotic diversity of order q between 0 and 2 (in increments of 0.2) for diversity; these values with different order q can be used to depict a q-profile in the `ggObsAsyscaling` function. By default, both the observed and asymptotic diversity estimates will be computed.
+
+
+## <span style="color:red;">FUNCTION ggObsAsyscaling(): GRAPHIC DISPLAYS OF DIVERSITY PROFILES</span>
+
+```{r,eval=FALSE}
+ggObsAsyscaling(output)
+```
+
+`ggObsAsyscaling` is a ggplot2 extension for an `ObsAsyscaling` object to plot q-profile (which depicts the observed diversity and asymptotic diversity estimate with respect to order q) for q between 0 and 2 (in increments of 0.2) in default.
+
+In the plot of profiles, only confidence intervals of the asymptotic diversity will be shown when both the observed and asymptotic diversity estimates are computed.
+
+
+## <span style="color:blue;">TAXONOMIC DIVERSITY (TD): q-profiles</span>
+
+### Example 10a: TD q-profiles for abundance data
+
+The following commands returns the observed and asymptotic taxonomic diversity ('TD') for the `Brazil_rainforest_abun_data`, along with its confidence interval for diversity order q between 0 to 2. Here only the first ten rows of the output are shown.
+
+```{r, eval=FALSE}
+data(Brazil_rainforest_abun_data)
+output_ObsAsy_TD_abun <- ObsAsyscaling(Brazil_rainforest_abun_data, rho = 0.3, 
+                                       datatype = "abundance")
+output_ObsAsy_TD_abun
+```
+
+```{r, echo=FALSE, cache=TRUE}
+output_ObsAsy_TD_abun <- ObsAsyscaling(Brazil_rainforest_abun_data, rho = 0.3, 
+                                       datatype = "abundance")
+
+tmp = output_ObsAsy_TD_abun
+tmp[,(3:6)] <- round(tmp[,(3:6)], 3)
+tmp[1:10,]
+```
+
+The following commands plot the corresponding q-profiles, along with its confidence interval for q between 0 to 2.
+
+```{r}
+# q-profile curves
+ggObsAsyscaling(output_ObsAsy_TD_abun)
+```
+
+
+
+### Example 10b: TD q-profiles for incidence data
+
+The following commands return the observed and asymptotic taxonomic diversity ('TD') estimates for the `Fish_incidence_data`, along with its confidence interval for diversity order q between 0 to 2. Here only the first ten rows of the output are shown.
+
+```{r, eval=FALSE}
+data(Fish_incidence_data)
+output_ObsAsy_TD_inci <- ObsAsyscaling(Fish_incidence_data, rho = 0.3, 
+                                       datatype = "incidence_raw")
+output_ObsAsy_TD_inci
+```
+
+```{r, echo=FALSE, cache=TRUE}
+output_ObsAsy_TD_inci <- ObsAsyscaling(Fish_incidence_data, rho = 0.3, 
+                                       datatype = "incidence_raw")
+
+tmp = output_ObsAsy_TD_inci
+tmp[,(3:6)] <- round(tmp[,(3:6)], 3)
+tmp[1:10,]
+```
+
+The following commands plot the corresponding q-profiles, along with its confidence interval for q between 0 to 2.
+
+```{r}
+# q-profile curves
+ggObsAsyscaling(output_ObsAsy_TD_inci)
+```
+
+
+
+
+## License
+The iNEXT.scaling package is licensed under the GPLv3. To help refine `iNEXT.scaling`, your comments or feedback would be welcome (please send them to Anne Chao or report an issue on the iNEXT.scaling github [iNEXT.scaling_github](https://github.com/KaiHsiangHu/iNEXT.scaling). 
+
+## References
+
+

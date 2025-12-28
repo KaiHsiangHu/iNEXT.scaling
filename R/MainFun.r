@@ -15,7 +15,7 @@
 #' sample coverage estimates of the reference sample (\code{SC(n)}), sample coverage estimate for twice the reference sample size (\code{SC(2n)}),
 #' the first five species abundance counts (\code{f1}--\code{f5}).\cr
 #'  
-#' For incidence data, the basic information includes assemblage name (\code{Assemblage}), number of sampling units (\code{T}), 
+#' For incidence data, the basic information includes assemblage name (\code{Assemblage}), number of sampling units in the reference sample (\code{T}), 
 #' total number of sampling units in the overall assemblage (\code{T*}), sampling fraction of the reference sample (\code{rho}), 
 #' total number of incidences (\code{U}), observed species richness (\code{S.obs}), 
 #' sample coverage estimates of the reference sample (\code{SC(T)}), sample coverage estimate for twice the reference sample size
@@ -498,7 +498,7 @@ type_plot = function(x_list, type, class, datatype, facet.var, color.var) {
 
 #' Compute diversity estimates with a particular set of sample sizes/coverages
 #' 
-#' \code{estimatescaling} computes diversity (Hill numbers with q = 0, 1 and 2) with a particular set of user-specified levels of sample sizes or sample coverages. If no sample sizes or coverages are specified, this function by default computes diversity estimates for the minimum sample coverage or minimum sample size among all samples extrapolated to double reference sizes.
+#' \code{estimatescaling} computes diversity (Hill numbers with q = 0, 1 and 2) with a particular set of user-specified levels of sample sizes or sample coverages. If no sample sizes or coverages are specified, this function by default computes diversity estimates for the minimum sample coverage or minimum sample size among all samples extrapolated to the maximum extrapolation limit (see `level`).
 #' @param data (a) For \code{datatype = "abundance"}, data can be input as a vector of species abundances (for a single assemblage), matrix/data.frame (species by assemblages), or a list of species abundance vectors. \cr
 #' (b) For \code{datatype = "incidence_raw"}, data can be input as a list of matrices/data.frames (species by sampling units); data can also be input as a single matrix/data.frame by merging all sampling units across assemblages based on species identity; in this case, the number of sampling units (\code{nT}, see below) must be specified. 
 #' @param rho the sampling fraction can be input as a vector for each assemblage, or specify a single numeric value to apply to all assemblages.

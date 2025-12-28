@@ -24,7 +24,7 @@ observed species richness in the reference sample (\code{S.obs}),
 sample coverage estimates of the reference sample (\code{SC(n)}), sample coverage estimate for twice the reference sample size (\code{SC(2n)}),
 the first five species abundance counts (\code{f1}--\code{f5}).\cr
  
-For incidence data, the basic information includes assemblage name (\code{Assemblage}), number of sampling units (\code{T}), 
+For incidence data, the basic information includes assemblage name (\code{Assemblage}), number of sampling units in the reference sample (\code{T}), 
 total number of sampling units in the overall assemblage (\code{T*}), sampling fraction of the reference sample (\code{rho}), 
 total number of incidences (\code{U}), observed species richness (\code{S.obs}), 
 sample coverage estimates of the reference sample (\code{SC(T)}), sample coverage estimate for twice the reference sample size

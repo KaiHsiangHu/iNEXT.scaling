@@ -52,7 +52,7 @@ a data.frame of diversity table including the following arguments: (when \code{b
 Similar output is obtained for \code{base = "size"}. \cr\cr
 }
 \description{
-\code{estimatescaling} computes diversity (Hill numbers with q = 0, 1 and 2) with a particular set of user-specified levels of sample sizes or sample coverages. If no sample sizes or coverages are specified, this function by default computes diversity estimates for the minimum sample coverage or minimum sample size among all samples extrapolated to double reference sizes.
+\code{estimatescaling} computes diversity (Hill numbers with q = 0, 1 and 2) with a particular set of user-specified levels of sample sizes or sample coverages. If no sample sizes or coverages are specified, this function by default computes diversity estimates for the minimum sample coverage or minimum sample size among all samples extrapolated to the maximum extrapolation limit (see `level`).
 }
 \examples{
 # Taxonomic diversity for abundance data with two target coverages (93\% and 97\%)
